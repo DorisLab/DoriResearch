@@ -1,0 +1,10 @@
+{
+  "name": "dorislab-research",
+  "version": "0.1.0",
+  "host_protocol": 1,
+  "bundle_schema": 1,
+  "status": "development-preview",
+  "frontend": "frontend",
+  "backend": "backend",
+  "entry": "frontend/dist/index.html"
+}

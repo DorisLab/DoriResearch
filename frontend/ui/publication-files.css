@@ -1,0 +1,88 @@
+.publication-files {
+  margin-top: 32px;
+  border: 1px solid var(--border, var(--line));
+  border-radius: var(--radius-control, 8px);
+  overflow: hidden;
+  font: var(--ui-font-size, 15px) / 1.5 var(--font-ui, sans-serif);
+}
+.publication-files > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  list-style: none;
+}
+.publication-files > summary::-webkit-details-marker {
+  display: none;
+}
+.publication-files > summary > svg {
+  width: 1em;
+  height: 1em;
+  transform: rotate(-90deg);
+}
+.publication-files[open] > summary > svg {
+  transform: none;
+}
+.publication-files > summary > span {
+  color: var(--muted);
+}
+.publication-files-scroll {
+  --file-row-height: calc(var(--ui-font-size, 15px) * 1.5 + 12px);
+  max-height: calc(var(--file-row-height) * 20);
+  overflow: auto;
+  overscroll-behavior: contain;
+  --fade-top: #000;
+  --fade-bottom: #000;
+  --fade-size: min(var(--file-row-height), 30%);
+  /* Fade a full row, leaving the scrollbar opaque, as in the chat composer. */
+  mask-image:
+    linear-gradient(
+      var(--fade-top),
+      #000 var(--fade-size),
+      #000 calc(100% - var(--fade-size)),
+      var(--fade-bottom)
+    ),
+    linear-gradient(#000, #000);
+  mask-size:
+    calc(100% - 10px) 100%,
+    10px 100%;
+  mask-position: left, right;
+  mask-repeat: no-repeat;
+  scrollbar-width: auto;
+  scrollbar-color: auto;
+}
+.publication-files-scroll[data-above] {
+  --fade-top: transparent;
+}
+.publication-files-scroll[data-below] {
+  --fade-bottom: transparent;
+}
+.publication-files-scroll button {
+  display: block;
+  width: 100%;
+  height: var(--file-row-height);
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 0;
+  text-align: left;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+.publication-files-scroll button > span {
+  color: var(--muted);
+}
+.publication-files-scroll button:hover {
+  background: var(--hover);
+}
+.publication-files :is(button, summary):focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}

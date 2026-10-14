@@ -1,0 +1,185 @@
+/* Development-only host harness. Product components depend on ResearchHost, not this shell. */
+.preview-app {
+  display: grid;
+  grid-template-rows: 32px 44px minmax(0, 1fr);
+  height: 100dvh;
+  overflow: hidden;
+}
+.preview-context {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 20px;
+  color: #70777e;
+  background: #f1f3f5;
+  font-size: 11px;
+}
+.preview-context strong {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1px;
+  color: #43494f;
+}
+.preview-scope {
+  margin-left: auto;
+}
+.preview-tabbar {
+  display: flex;
+  align-items: center;
+  padding-right: 12px;
+  border-bottom: 1px solid var(--line);
+  background: var(--shell);
+}
+.preview-tabbar nav {
+  display: flex;
+  flex: 1;
+  overflow-x: auto;
+  height: 100%;
+  gap: 2px;
+  padding-left: 12px;
+  align-items: stretch;
+}
+.content-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  gap: 8px;
+  border-radius: 8px 8px 0 0;
+  padding: 0 12px;
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 4px;
+}
+.content-tab.active {
+  background: #fff;
+  color: #24282c;
+}
+.content-tab > button:first-child {
+  max-width: 230px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  height: 100%;
+}
+.close-tab {
+  display: grid;
+  place-items: center;
+  border-radius: 4px;
+  width: 18px;
+  height: 18px;
+}
+.close-tab:hover {
+  background: #dfe4e8;
+}
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: #18242b44;
+  z-index: 90;
+}
+.draft-dialog {
+  position: fixed;
+  z-index: 100;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(640px, calc(100% - 32px));
+  max-height: calc(100dvh - 48px);
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 12px 60px #0003;
+}
+.dialog-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.dialog-title-row h2 {
+  font-size: 20px;
+}
+.draft-dialog > p {
+  color: var(--muted);
+  font-size: 12px;
+}
+.draft-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin: 24px 0 16px;
+}
+.draft-toolbar label {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+}
+.draft-toolbar select {
+  max-width: 320px;
+  min-width: 0;
+  flex: 1;
+}
+.draft-toolbar .quiet {
+  font-size: 12px;
+}
+.reference-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.reference-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 12px;
+}
+.reference-card blockquote {
+  margin: 8px 0;
+  overflow-wrap: anywhere;
+}
+.reference-card summary {
+  font-size: 11px;
+}
+.reference-card pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 240px;
+  overflow: auto;
+  font-size: 11px;
+}
+.draft-dialog textarea {
+  width: 100%;
+  resize: vertical;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 16px;
+  min-height: 110px;
+}
+.draft-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+}
+.draft-footer span {
+  color: var(--muted);
+  font-size: 12px;
+}
+@media (max-width: 620px) {
+  .preview-context {
+    gap: 12px;
+    padding: 0 12px;
+  }
+  .preview-scope {
+    font-size: 10px;
+  }
+  .draft-toolbar {
+    flex-wrap: wrap;
+  }
+}

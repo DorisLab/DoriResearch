@@ -1,0 +1,40 @@
+html,
+body,
+#root {
+  height: 100%;
+  overflow: hidden;
+}
+:root {
+  color: var(--text, #24282c);
+  background: var(--canvas, #fff);
+  --line: var(--border, #1c29331f);
+}
+[data-theme='dark'] {
+  color-scheme: dark;
+}
+[data-theme='light'] {
+  color-scheme: light;
+}
+.artifact-scroll {
+  height: 100%;
+}
+select,
+.sticky-toc,
+.chart-reference {
+  background: var(--canvas, #fff);
+}
+.primary {
+  background: var(--send, #24282c);
+  color: var(--on-send, #fff);
+}
+.primary:hover {
+  background: var(--send-hover, #424a50);
+}
+.study-cover {
+  background: var(--surface);
+  border-color: var(--line);
+}
+[data-theme='dark'] .source-mark {
+  background: #d9b77918;
+  color: #d9b779;
+}

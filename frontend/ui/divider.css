@@ -1,0 +1,7 @@
+.ui-divider {
+  height: 1px;
+  margin-block: 6px;
+  margin-inline: var(--divider-inset, 12px);
+  background: var(--line);
+  pointer-events: none;
+}

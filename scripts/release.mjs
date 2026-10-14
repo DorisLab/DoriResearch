@@ -13,7 +13,7 @@ export function identity(files) {
     Object.entries(files).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0),
   ))).digest('hex');
 }
-async function release(root, output) {
+export async function release(root, output) {
   const git = (...args) => execFileSync('git', ['-C', root, ...args], { encoding: 'utf8' }).trim();
   if (git('status', '--porcelain')) throw new Error('Commit and verify the release sources first');
   const commit = git('rev-parse', 'HEAD');
@@ -25,6 +25,10 @@ async function release(root, output) {
   async function copy(from, name) {
     if (!safe(name) || !(await lstat(from)).isFile()) throw new Error(`Unsafe file: ${name}`);
     const bytes = await readFile(from);
+    await save(bytes, name);
+  }
+  async function save(bytes, name) {
+    if (!safe(name)) throw new Error(`Unsafe file: ${name}`);
     await mkdir(resolve(output, name, '..'), { recursive: true });
     await writeFile(resolve(output, name), bytes);
     files[name] = createHash('sha256').update(bytes).digest('hex');
@@ -33,7 +37,12 @@ async function release(root, output) {
     if (name.split('/').some(p => p.startsWith('.env') || ['.npmrc', '.pypirc'].includes(p))) {
       throw new Error('Private configuration cannot be published');
     }
-    await copy(resolve(root, name), `source/${name}`);
+    // A clean Windows worktree can still contain CRLF while its commit contains LF.
+    // Source and bundle must describe identical bytes, independent of checkout filters.
+    const bytes = execFileSync('git', ['-C', root, 'show', `${commit}:${name}`], {
+      maxBuffer: 32 * 1024 * 1024,
+    });
+    await save(bytes, `source/${name}`);
   }
   const build = resolve(root, 'frontend/dist/desktop');
   for (const entry of await readdir(build, { recursive: true, withFileTypes: true })) {

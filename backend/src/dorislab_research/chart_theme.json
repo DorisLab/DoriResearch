@@ -1,0 +1,9 @@
+{
+  "strategy": "#c83932",
+  "benchmark": "#477bb5",
+  "excess": "#b98b2f",
+  "drawdown": "#df8a87",
+  "exposure": "#538795",
+  "neutral": "#7a828e",
+  "palette": ["#c83932", "#477bb5", "#b98b2f", "#538795", "#9467bd", "#df8a87"]
+}

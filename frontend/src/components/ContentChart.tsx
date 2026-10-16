@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import * as echarts from 'echarts';
 import { ChatCircleDots } from '@phosphor-icons/react';
 import { connectChartView, type ChartView } from './chartView';
-import { chartAppearance } from './chartAppearance';
+import { contentChartAppearance } from './contentChartAppearance';
 import { chartReference } from './chartReference';
 import type { Source } from './ContentBlock';
 
@@ -20,10 +20,7 @@ function useContentChart({ spec: value, host, reference, ...source }: Source & {
     const observer = new ResizeObserver(() => chart.resize());
     observer.observe(target);
     const appearance = () => {
-      const style = chartAppearance(false);
-      if (!chart.getOption().xAxis) delete style.xAxis;
-      if (!chart.getOption().yAxis) delete style.yAxis;
-      chart.setOption(style);
+      chart.setOption(contentChartAppearance(chart.getOption()));
     };
     void (async () => {
       const spec = value as {

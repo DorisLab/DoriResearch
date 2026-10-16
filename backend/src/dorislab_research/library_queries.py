@@ -135,7 +135,6 @@ def delete(library: Library, ids: list[str]) -> None:
                     identity,
                 ),
             )
-            db.execute("DELETE FROM search WHERE id=?", (identity,))
     cleanup_deleted(library)
 
 

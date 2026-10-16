@@ -6,7 +6,7 @@ from collections.abc import Callable
 from contextlib import closing
 from typing import Any
 
-from . import datasets, library_queries
+from . import datasets, file_reads, library_queries, search_sync
 from .database import connect
 from .jobs import cancel, job, start
 from .library import Library
@@ -37,6 +37,8 @@ def backup(library: Library) -> None:
 
 def file_content(library: Library, args: dict[str, Any]) -> dict[str, str]:
     path = library.file(args["reference"], args["path"])
+    if path.stat().st_size > 8 * 1024 * 1024:
+        raise ValueError("文件超过 8 MiB，请使用分段读取")
     return {
         "mime": mimetypes.guess_type(path)[0] or "application/octet-stream",
         "bytes": base64.b64encode(path.read_bytes()).decode("ascii"),
@@ -47,6 +49,9 @@ def dispatch(library: Library, operation: str, args: dict[str, Any]) -> Any:
     reference = args.get("reference", {})
     operations: dict[str, Callable[[], Any]] = {
         "health": lambda: health(library),
+        "search_changes": lambda: search_sync.changes(library, args),
+        "file_chunk": lambda: file_reads.chunk(library, args),
+        "table_preview": lambda: file_reads.table_preview(library, args),
         "freeze": lambda: freeze(library, args),
         "backup": lambda: backup(library),
         "list": lambda: library_queries.listing(
@@ -60,8 +65,8 @@ def dispatch(library: Library, operation: str, args: dict[str, Any]) -> Any:
         "delete": lambda: library_queries.delete(library, args["ids"]),
         "expire": lambda: library_queries.expire(library),
         "file": lambda: file_content(library, args),
-        "text": lambda: library.file(reference, args["path"]).read_text(encoding="utf-8-sig"),
-        "rows": lambda: datasets.rows(library.file(reference, args["path"])),
+        "text": lambda: file_reads.text(library, args),
+        "rows": lambda: datasets.rows(library.file(reference, args["path"]), args),
         "table": lambda: datasets.table(library.file(reference, args["path"]), args),
         "backtest": lambda: start(library, reference, args),
         "job": lambda: job(library, args["id"]),

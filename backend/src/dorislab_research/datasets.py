@@ -1,60 +1,68 @@
-"""Decode content data, not market-data discovery or an analysis pipeline."""
+"""Requested pages/ranges; filtering and sorting cover the entire dataset."""
 
-import csv
 import json
 import math
-from collections.abc import Callable
+from itertools import islice
 from pathlib import Path
-from typing import Any, cast
+from typing import Any
 
-# Load native extensions on the service's main thread, before request workers start.
-import pyarrow.parquet as pq
-
-
-def rows(path: Path) -> list[dict[str, Any]]:
-    match path.suffix.lower():
-        case ".parquet":
-            values = cast(Callable[..., Any], pq.read_table)(path).to_pylist()
-        case ".csv" | ".tsv":
-            with path.open(encoding="utf-8-sig", newline="") as file:
-                values = list(
-                    csv.DictReader(file, delimiter="\t" if path.suffix == ".tsv" else ",")
-                )
-        case ".json":
-            values = json.loads(path.read_text(encoding="utf-8"))
-        case _:
-            raise ValueError("数据文件支持 JSON、CSV、TSV 和 Parquet")
-    if not isinstance(values, list) or any(not isinstance(row, dict) for row in values):
-        raise ValueError("数据须为包含列名的记录数组")
-    return [{str(key): clean(value) for key, value in row.items()} for row in values]
+from .dataset_cache import dataset
+from .dataset_stream import clean, records
 
 
-def clean(value: Any) -> Any:
-    if isinstance(value, float) and not math.isfinite(value):
-        return None
-    if hasattr(value, "isoformat"):
-        return value.isoformat()
-    return value
+def rows(path: Path, request: dict[str, Any] | None = None) -> list[dict[str, Any]]:
+    request = request or {}
+    offset = max(0, int(request.get("offset", 0)))
+    limit = int(request.get("limit", 10000))
+    if not 1 <= limit <= 10000:
+        raise ValueError("图表每次最多读取 10000 行；请指定范围或先聚合数据")
+    selected = request.get("columns")
+    if selected is not None and (
+        not isinstance(selected, list) or any(not isinstance(column, str) for column in selected)
+    ):
+        raise ValueError("请求的数据列无效")
+    values = []
+    size = 0
+    end = offset + limit + (0 if "limit" in request else 1)
+    for row in islice(records(path, selected), offset, end):
+        if selected is not None and any(key not in row for key in selected):
+            raise ValueError("请求的数据列不存在")
+        value = {key: clean(row.get(key)) for key in (selected if selected is not None else row)}
+        size += len(json.dumps(value, ensure_ascii=False).encode())
+        if size > 8 * 1024 * 1024:
+            raise ValueError("图表数据超过 8 MiB，请缩小读取范围或先聚合")
+        values.append(value)
+    if len(values) > limit:
+        raise ValueError("图表超过 10000 行，请指定 offset/limit 范围或先聚合数据")
+    return values
 
 
 def table(path: Path, request: dict[str, Any]) -> dict[str, Any]:
-    values = rows(path)
-    columns = list(dict.fromkeys(key for row in values for key in row))
-    query = str(request.get("query", "")).casefold()
-    values = [row for row in values if query in " ".join(str(v) for v in row.values()).casefold()]
-    sort = request.get("sort")
-    if sort in columns:
-        values.sort(
-            key=lambda row: comparable(row.get(sort)), reverse=bool(request.get("descending"))
+    with dataset(path) as (db, columns):
+        query = str(request.get("query", "")).casefold()
+        total = db.execute(
+            "SELECT count(*) FROM records WHERE instr(searchable,?)>0", (query,)
+        ).fetchone()[0]
+        size = min(100, max(1, int(request.get("page_size", 20))))
+        number = max(1, min(int(request.get("page", 1)), math.ceil(total / size)))
+        sort = request.get("sort")
+        order = "position"
+        if sort in columns:
+            db.create_function("sort_group", 1, lambda s: comparable(json.loads(s).get(sort))[0])
+            db.create_function("sort_value", 1, lambda s: comparable(json.loads(s).get(sort))[1])
+            direction = "DESC" if request.get("descending") else "ASC"
+            order = f"sort_group(content) {direction},sort_value(content) {direction},position"
+        values = db.execute(
+            f"SELECT content FROM records WHERE instr(searchable,?)>0 ORDER BY {order} "
+            "LIMIT ? OFFSET ?",
+            (query, size, (number - 1) * size),
         )
-    total = len(values)
-    number = max(1, min(int(request.get("page", 1)), math.ceil(total / 20)))
-    return {
-        "columns": columns,
-        "rows": values[(number - 1) * 20 : number * 20],
-        "total": total,
-        "page": number,
-    }
+        return {
+            "columns": columns,
+            "rows": [json.loads(row[0]) for row in values],
+            "total": total,
+            "page": number,
+        }
 
 
 def comparable(value: Any) -> tuple[int, Any]:

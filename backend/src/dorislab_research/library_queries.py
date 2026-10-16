@@ -6,6 +6,7 @@ from typing import Any
 
 from .database import connect, writable
 from .library import Library
+from .search_files import refresh
 
 
 def summary(row: dict[str, Any]) -> dict[str, Any]:
@@ -25,11 +26,14 @@ def summary(row: dict[str, Any]) -> dict[str, Any]:
 def listing(library: Library, query: str = "", kind: str = "") -> list[dict[str, Any]]:
     # Substring matching also works for Chinese without a language-specific FTS tokenizer.
     with connect(library.root) as db:
+        if query:
+            db.execute("BEGIN IMMEDIATE")
+            refresh(db, library)
         rows = db.execute(
-            """SELECT * FROM entries WHERE deleted_at IS NULL
-            AND archived_at IS NULL AND (?='' OR kind=?)
-            AND instr(lower(title||' '||summary||' '||body),lower(?))>0
-            ORDER BY updated_at DESC,id""",
+            """SELECT e.* FROM entries e LEFT JOIN search_files s ON s.id=e.id
+            WHERE deleted_at IS NULL AND archived_at IS NULL AND (?='' OR kind=?)
+            AND instr(lower(title||' '||summary||' '||coalesce(s.text,'')),lower(?))>0
+            ORDER BY updated_at DESC,e.id""",
             (kind, kind, query),
         ).fetchall()
     return [summary(dict(row)) for row in rows]

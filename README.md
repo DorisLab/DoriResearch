@@ -59,13 +59,15 @@ content = library.content(reference)
 
 策略的 config.backtest 可配置 Python 函数 `module:function`、参数和可选 date_range。参考 example_calculation.py 与 examples.py。函数接收 `(parameters, output_directory)`，返回结果的 title/summary/body/files；这是手动回测面板的适配接口，普通研究不需要使用它。
 
-用户发起的成功回测自动保存为独立结果，关联策略版本，参数只作用于本次运行。无日期配置时面板不添加限制；策略自行报告数据不足，不自动补数、换数据或缩小区间。Agent 探索可直接调用程序，按需使用 Library 保存。
+用户发起的成功回测自动保存并打开独立结果，关联策略版本，参数只作用于本次运行。重新打开已完成的历史任务不会再次跳转。无日期配置时面板不添加限制；策略自行报告数据不足，不自动补数、换数据或缩小区间。Agent 探索可直接调用程序，按需使用 Library 保存。
 
 ## 开发与数据库
 
 在 backend 用 uv 同步锁定依赖，运行 `python ../scripts/dev.py` 启动真实 API 和 Vite。预览使用独立的 target/preview 测试数据，初次生成一个模拟研究与一个模拟策略，数值均实际计算。示例只初始化一次，升级不覆盖用户修改或复活删除内容。
 
 数据库由 backend/src/dorislab_research/migrations 中的 Alembic 修订维护。Agent 编写迁移及相关测试，客户端启用时执行正式升级；普通保存不得自动迁移。测试使用隔离数据库和文件目录。
+
+候选工程的 `service verify --data <检查根目录>` 在新分配的隔离目录迁移测试库，启动实际 HTTP 服务并读取健康状态、搜索列表及正文；失败阻止启用，结束后回收子进程和测试数据。此检查不认证研究结论，不访问正式库。
 
 检查入口：`scripts/check.ps1 -Mode Standard`，可加 `-Target Backend` 或 Frontend。生产服务由客户端管理进程生命周期，只接受当前客户端的本地凭证；用户登录、原始数据、商业权益由 Dorislab 管理。
 
@@ -74,7 +76,7 @@ content = library.content(reference)
 The desktop keeps a disposable, account-scoped search index. Library changes have a monotonic cursor;
 `search_changes` returns bounded deltas and resets the cursor when the database identity changes.
 Saving, archiving, restoring and deleting all update this projection. Direct changes to persistent
-files are detected on the next search; unchanged file bodies are not reread. Filenames and Markdown/
+files are detected on the next search; list and global search share this index and unchanged file bodies are not reread. Filenames and Markdown/
 text files up to 1 MiB are searchable. Large data arrays remain data files, not full-text documents.
 Search sync failures are surfaced and retried; they never roll back content saves.
 

@@ -10,7 +10,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
 
-from . import job_process, library_queries
+from . import job_process
 from .database import connect, migrate
 from .library import Library
 from .service_api import dispatch
@@ -81,9 +81,9 @@ def main() -> None:
 
         seed(Library(args.data))
     elif args.command == "verify":
-        migrate(args.data)
-        library_queries.listing(Library(args.data))
-        print(json.dumps(dispatch(Library(args.data), "health", {})))
+        from .service_verify import verify
+
+        print(json.dumps(verify(args.data)))
     elif args.command == "check":
         print(json.dumps(dispatch(Library(args.data), "health", {})))
     else:

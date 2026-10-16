@@ -12,6 +12,7 @@ export function useBacktest(reference: PublicationRef, host: ResearchHost) {
   const [error, setError] = useState('');
   const [pending, setPending] = useState(false);
   const requestId = useRef<string | null>(null);
+  const opening = useRef<string | null>(null);
   const [identity, setIdentity, restored] = useStored<string | null>(key, null, validIdentity);
   const running =
     !restored ||
@@ -30,6 +31,8 @@ export function useBacktest(reference: PublicationRef, host: ResearchHost) {
         if (!current) return;
         setJob(value);
         setError('');
+        if (['running', 'queued'].includes(value.status)) opening.current = value.id;
+        openResult(value, host, opening);
         if (!['running', 'queued'].includes(value.status)) return;
       } catch (reason) {
         if (current) setError(`读取回测状态失败，正在重试：${String(reason)}`);
@@ -57,6 +60,8 @@ export function useBacktest(reference: PublicationRef, host: ResearchHost) {
       });
       setJob(value);
       setIdentity(value.id);
+      opening.current = value.id;
+      openResult(value, host, opening);
       requestId.current = null;
     } catch (reason) {
       setError(String(reason));
@@ -73,4 +78,10 @@ export function useBacktest(reference: PublicationRef, host: ResearchHost) {
     }
   }
   return { job, error, running, run, cancel };
+}
+
+function openResult(job: Job, host: ResearchHost, opening: { current: string | null }) {
+  if (['running', 'queued'].includes(job.status) || opening.current !== job.id) return;
+  opening.current = null;
+  if (job.status === 'succeeded' && job.result) host.open({ ...job.result, title: '策略回测结果' });
 }

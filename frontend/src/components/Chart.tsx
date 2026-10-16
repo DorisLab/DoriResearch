@@ -12,6 +12,7 @@ import { ChatCircleDots } from '@phosphor-icons/react';
 import type { Reference, Target } from '../types';
 import { chartAppearance } from './chartAppearance';
 import { seriesColor, type SeriesRole } from '../charting';
+import { connectChartView, type ChartView as View } from './chartView';
 
 registerCharts([
   LineChart,
@@ -34,11 +35,6 @@ interface Props {
   metric?: Metric;
   source?: Target;
   onReference?: (reference: Reference) => void;
-}
-interface View {
-  index: number;
-  zoom: [number, number];
-  hidden: string[];
 }
 
 function option(runs: ChartSeries[], compact: boolean, metric: Metric): EChartsCoreOption {
@@ -144,19 +140,12 @@ export function Chart({ runs, compact = false, metric = 'nav', source, onReferen
     };
     appearance();
     window.addEventListener('research-appearance', appearance);
-    chart.on('updateAxisPointer', (raw: unknown) => {
-      const event = raw as { axesInfo?: { value: number }[] };
-      const index = event.axesInfo?.[0]?.value;
-      if (typeof index === 'number') view.current.index = index;
-    });
-    chart.on('datazoom', () => {
-      const zoom = chart.getOption().dataZoom as { start: number; end: number }[];
-      view.current.zoom = [zoom[0].start, zoom[0].end];
-    });
-    chart.on('legendselectchanged', (raw: unknown) => {
-      const event = raw as { selected: Record<string, boolean> };
-      view.current.hidden = Object.keys(event.selected).filter((name) => !event.selected[name]);
-    });
+    connectChartView(
+      chart,
+      view,
+      `${source?.id ?? 'preview'}:${metric}`,
+      runs[0].curve.dates.length,
+    );
     const observer = new ResizeObserver(() => chart.resize());
     observer.observe(element.current);
     return () => {
@@ -164,7 +153,7 @@ export function Chart({ runs, compact = false, metric = 'nav', source, onReferen
       observer.disconnect();
       chart.dispose();
     };
-  }, [runs, compact, metric]);
+  }, [runs, compact, metric, source?.id]);
   if (!runs.length) return <p className="muted">暂无曲线</p>;
   return (
     <div className={`chart-block ${compact ? 'compact' : ''}`}>

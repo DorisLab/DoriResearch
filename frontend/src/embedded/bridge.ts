@@ -1,5 +1,6 @@
 import type { Target } from '../types';
 import type { PublicationContent, PublicationSummary } from '../publicationContracts';
+import { checkpointView } from '../viewCheckpoint';
 
 export interface Appearance {
   theme: string;
@@ -7,6 +8,7 @@ export interface Appearance {
   variables: Record<string, string>;
 }
 export interface Init {
+  viewState?: unknown;
   lifecycle?: { archived: boolean; busy: boolean };
   publications?: PublicationSummary[];
   publication?: PublicationContent;
@@ -46,6 +48,10 @@ export function receive(callback: (type: string, payload: Init) => void) {
   const listener = (event: MessageEvent) => {
     const message = event.data;
     if (!fromHost(event)) return;
+    if (message.type === 'checkpoint-view' && typeof message.payload?.requestId === 'string') {
+      send('view-checkpoint', { requestId: message.payload.requestId, ...checkpointView() });
+      return;
+    }
     if ((message.type === 'init' || message.type === 'shortcuts') && message.payload?.shortcuts)
       bindings = message.payload.shortcuts;
     callback(message.type, message.payload);

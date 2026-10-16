@@ -1,8 +1,10 @@
 import { fromHost, send } from './bridge';
 import type { PublicationPage, PublicationQuery } from '../types';
+import { trackViewRequest } from '../viewCheckpoint';
 
 export function queryPublications(request: PublicationQuery): Promise<PublicationPage> {
-  return new Promise((resolve, reject) => {
+  const finish = trackViewRequest();
+  return new Promise<PublicationPage>((resolve, reject) => {
     const requestId = crypto.randomUUID();
     const cleanup = () => {
       window.clearTimeout(timer);
@@ -26,5 +28,5 @@ export function queryPublications(request: PublicationQuery): Promise<Publicatio
     }, 15000);
     window.addEventListener('message', listener);
     send('query-publications', { requestId, request });
-  });
+  }).finally(finish);
 }

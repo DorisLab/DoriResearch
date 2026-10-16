@@ -1,5 +1,6 @@
 import { fromHost, send } from './bridge';
 import type { PublicationRef } from '../publicationContracts';
+import { trackViewRequest } from '../viewCheckpoint';
 
 let queue: Promise<unknown> = Promise.resolve();
 export function readFile(
@@ -8,9 +9,10 @@ export function readFile(
   cover?: PublicationRef,
   listed?: PublicationRef,
 ): Promise<string> {
+  const finish = trackViewRequest();
   const result = queue.then(() => requestFile(path, image, cover, listed));
   queue = result.catch(() => {});
-  return result;
+  return result.finally(finish);
 }
 function requestFile(
   path: string,

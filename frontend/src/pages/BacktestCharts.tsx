@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { PublicationContent } from '../publicationContracts';
 import type { ResearchHost } from '../types';
 import { Chart } from '../components/Chart';
+import { readView, useViewChoice, writeView } from '../viewCheckpoint';
 import { parseBacktestCharts, type BacktestCharts as ChartData } from '../backtestCharts';
 
 function useChartData(host: ResearchHost, id: string, key: string, path?: string) {
@@ -38,7 +39,11 @@ export function BacktestCharts({
   host: ResearchHost;
 }) {
   const [attempt, setAttempt] = useState(0);
-  const [metric, setMetric] = useState<'nav' | 'drawdown' | 'exposure'>('nav');
+  const [metric, setMetric] = useViewChoice('chart-metric', 'nav', [
+    'nav',
+    'drawdown',
+    'exposure',
+  ] as const);
   const reference = content.item.reference;
   const path =
     reference.kind === 'run'
@@ -96,8 +101,18 @@ export function BacktestCharts({
 }
 
 function MonthlyReturns({ rows }: { rows: ChartData['monthly'] }) {
+  const [open, setOpen] = useState(() =>
+    readView('monthly-returns', false, (v): v is boolean => typeof v === 'boolean'),
+  );
   return (
-    <details>
+    <details
+      open={open}
+      onToggle={(event) => {
+        const next = event.currentTarget.open;
+        writeView('monthly-returns', next);
+        setOpen(next);
+      }}
+    >
       <summary>月收益</summary>
       <table>
         <thead>

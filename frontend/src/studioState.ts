@@ -1,5 +1,5 @@
 import type { PublicationSummary } from './publicationContracts';
-export type Section = 'study' | 'strategy' | 'run';
+export type Section = 'study' | 'strategy';
 export interface ListState {
   query: string;
   series: string;
@@ -14,15 +14,15 @@ export interface StudioState {
 const view = (): ListState => ({ query: '', series: '', sort: 'newest', page: 1, scroll: 0 });
 export const initial: StudioState = {
   section: 'study',
-  views: { study: view(), strategy: view(), run: view() },
+  views: { study: view(), strategy: view() },
 };
 export function valid(value: unknown): value is StudioState {
   if (!value || typeof value !== 'object') return false;
   const state = value as StudioState;
   return (
-    ['study', 'strategy', 'run'].includes(state.section) &&
+    ['study', 'strategy'].includes(state.section) &&
     !!state.views &&
-    (['study', 'strategy', 'run'] as const).every((kind) => {
+    (['study', 'strategy'] as const).every((kind) => {
       const entry = state.views[kind];
       return (
         !!entry &&

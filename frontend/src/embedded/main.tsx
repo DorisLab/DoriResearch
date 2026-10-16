@@ -9,6 +9,7 @@ import type { ResearchHost } from '../types';
 import { applyAppearance, receive, send, type Init } from './bridge';
 import { readFile } from './readFile';
 import { queryPublications } from './queryPublications';
+import { request } from './request';
 import { initializeView, restoreViewScroll } from '../viewCheckpoint';
 import '../styles/base.css';
 import '../styles/studio.css';
@@ -18,6 +19,7 @@ import '../styles/bundled-fonts.css';
 import './style.css';
 
 const host: ResearchHost = {
+  request,
   protocolVersion: 1,
   previewFile: (path) => send('preview-file', path),
   queryPublications,

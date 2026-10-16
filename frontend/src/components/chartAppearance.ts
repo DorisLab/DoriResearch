@@ -41,6 +41,9 @@ export function chartAppearance(compact: boolean): EChartsCoreOption {
           {
             textStyle: { ...typography, color: muted },
             backgroundColor: surface,
+            fillerColor: 'rgba(196, 165, 101, .18)',
+            borderColor: line,
+            handleStyle: { color: '#c4a565', borderColor: '#c4a565' },
             dataBackground: { areaStyle: { color: muted } },
           },
         ],

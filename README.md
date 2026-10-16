@@ -67,3 +67,24 @@ content = library.content(reference)
 数据库由 backend/src/dorislab_research/migrations 中的 Alembic 修订维护。Agent 编写迁移及相关测试，客户端启用时执行正式升级；普通保存不得自动迁移。测试使用隔离数据库和文件目录。
 
 检查入口：`scripts/check.ps1 -Mode Standard`，可加 `-Target Backend` 或 Frontend。生产服务由客户端管理进程生命周期，只接受当前客户端的本地凭证；用户登录、原始数据、商业权益由 Dorislab 管理。
+
+## Search and large files
+
+The desktop keeps a disposable, account-scoped search index. Library changes have a monotonic cursor;
+`search_changes` returns bounded deltas and resets the cursor when the database identity changes.
+Saving, archiving, restoring and deleting all update this projection. Direct changes to persistent
+files are detected on the next search; unchanged file bodies are not reread. Filenames and Markdown/
+text files up to 1 MiB are searchable. Large data arrays remain data files, not full-text documents.
+Search sync failures are surfaced and retried; they never roll back content saves.
+
+Tables stream CSV/TSV/JSON records or Parquet batches into a disposable disk query cache, then filter
+and sort the complete dataset before returning a page. The cache holds at most four files and is
+invalidated by source changes. The first sorted/filterable view scans the file; it does not hold
+all rows in Python memory. JSON must be a record array; individual records are limited to 4 MiB.
+
+Charts can add `columns`, `offset` and `limit` next to `data`, for example
+`{"data":"observations.parquet","columns":["date","return"],"offset":0,"limit":500,"option":{...}}`.
+Parquet projects the selected columns; JSON/CSV advance through records to the requested range.
+The default is the entire file only when it fits within 10,000 rows and 8 MiB; larger inputs produce
+an explicit error asking for a range or aggregation. Explicit ranges are not statistical sampling.
+File previews and exports use bounded byte chunks and reject changes between chunks.

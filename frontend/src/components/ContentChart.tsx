@@ -26,7 +26,13 @@ function useContentChart({ spec: value, host, reference, ...source }: Source & {
       chart.setOption(style);
     };
     void (async () => {
-      const spec = value as { data?: string; option?: echarts.EChartsOption };
+      const spec = value as {
+        data?: string;
+        columns?: string[];
+        offset?: number;
+        limit?: number;
+        option?: echarts.EChartsOption;
+      };
       const option = spec.option ?? (value as echarts.EChartsOption);
       let dataset: unknown;
       if (spec.data) {
@@ -34,7 +40,13 @@ function useContentChart({ spec: value, host, reference, ...source }: Source & {
         const prefix = configPath?.includes('/')
           ? configPath.slice(0, configPath.lastIndexOf('/') + 1)
           : '';
-        dataset = await host.request!('rows', { reference, path: prefix + spec.data });
+        dataset = await host.request!('rows', {
+          reference,
+          path: prefix + spec.data,
+          columns: spec.columns,
+          offset: spec.offset,
+          limit: spec.limit,
+        });
       }
       if (!current) return;
       chart.setOption({

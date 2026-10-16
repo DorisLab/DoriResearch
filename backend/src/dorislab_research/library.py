@@ -115,8 +115,6 @@ class Library:
                         json.dumps(record, ensure_ascii=False),
                     ),
                 )
-                db.execute("DELETE FROM search WHERE id=?", (identity,))
-                db.execute("INSERT INTO search VALUES (?,?,?,?)", (identity, title, summary, body))
                 db.commit()
             except BaseException:
                 shutil.rmtree(folder)
@@ -164,7 +162,7 @@ class Library:
         ]
         return {
             "item": {**summary(record), "files": files},
-            "body": record["body"],
+            "body": (directory / "report.md").read_text(encoding="utf-8-sig"),
             "files": files,
             "references": json.loads(record["references_json"]),
             "revision_note": "",

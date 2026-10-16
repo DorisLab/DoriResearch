@@ -13,6 +13,7 @@ const host: ResearchHost = { protocolVersion: 1, open: vi.fn(), reference: vi.fn
 afterEach(() => {
   cleanup();
   localStorage.clear();
+  vi.clearAllMocks();
 });
 
 it('keeps a malformed metric local and reads inline metrics without a layout document', async () => {
@@ -91,6 +92,6 @@ it('manual backtest passes temporary parameters and opens its independent saved 
     'backtest',
     expect.objectContaining({ parameters: { cost: 20 }, start: '2025-01-01', end: '2025-12-31' }),
   );
-  await userEvent.click(await screen.findByRole('button', { name: /查看已保存/ }));
-  expect(host.open).toHaveBeenCalledWith({ ...result, title: '策略回测结果' });
+  await waitFor(() => expect(host.open).toHaveBeenCalledWith({ ...result, title: '策略回测结果' }));
+  expect(host.open).toHaveBeenCalledTimes(1);
 });

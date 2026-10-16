@@ -10,7 +10,7 @@ import pytest
 from dorislab_research import datasets
 from dorislab_research.database import migrate
 from dorislab_research.library import Library
-from dorislab_research.library_queries import archive, delete
+from dorislab_research.library_queries import archive, delete, page
 from dorislab_research.search_sync import changes
 from dorislab_research.service_api import dispatch
 
@@ -50,6 +50,34 @@ def test_rebuild_pagination_and_database_rollback(tmp_path: Path) -> None:
     assert len(last["documents"]) == 3 and not last["has_more"] and not last["reset"]
     assert changes(library, {**last, "cursor": last["cursor"] + 1})["reset"]
     assert changes(library, {**last, "generation": "replaced"})["reset"]
+
+
+def test_list_search_shares_file_index_without_rereading_unchanged_materials(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    migrate(tmp_path)
+    library = Library(tmp_path)
+    items = [library.save(kind="study", title=str(i), body="旧用词") for i in range(22)]
+    for item in items:
+        library.file(item, "report.md").write_text("新的关键词", encoding="utf-8")
+    result = page(library, {"query": "新的关键词", "page": 2, "kind": "study"})
+    assert result["total"] == 22 and len(result["items"]) == 2
+    assert page(library, {"query": "旧用词"})["total"] == 0
+    checkpoint = changes(library, {})
+    assert all("新的关键词" in doc["text"] for doc in checkpoint["documents"])
+
+    def no_read(*args: Any, **kwargs: Any) -> str:
+        raise AssertionError("未改动的材料不应重复读取")
+
+    with monkeypatch.context() as patch:
+        patch.setattr(Path, "read_text", no_read)
+        assert page(library, {"query": "新的关键词"})["total"] == 22
+        assert changes(library, checkpoint)["documents"] == []
+    library.file(items[0], "report.md").write_text("再次修订", encoding="utf-8")
+    assert page(library, {"query": "再次修订"})["total"] == 1
+    assert "再次修订" in changes(library, checkpoint)["documents"][0]["text"]
+    archive(library, items[0], True)
+    assert page(library, {"query": "再次修订"})["total"] == 0
 
 
 @pytest.mark.parametrize("extension", ["csv", "json", "parquet"])

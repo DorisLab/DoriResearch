@@ -9,14 +9,16 @@ description = "Editable research workspace for Dorislab"
 license = "MIT"
 requires-python = ">=3.13,<3.14"
 dependencies = [
+  "alembic==1.20.0",
   "doribt[plot]==0.6.2",
   "numpy==2.5.3",
   "pyarrow==24.0.0",
   "pydantic==2.13.5",
+  "sqlalchemy==2.1.4",
 ]
 
 [project.scripts]
-dorislab-research = "dorislab_research.cli:main"
+dorislab-research = "dorislab_research.service:main"
 
 [dependency-groups]
 dev = ["pytest==9.1.1", "ruff==0.16.7", "mypy==2.3.1", "pip-audit==2.10.1", "hatchling==1.32.0"]

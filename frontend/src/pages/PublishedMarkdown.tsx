@@ -4,6 +4,8 @@ import remarkGfm from 'remark-gfm';
 import type { PublicationContent } from '../publicationContracts';
 import type { ResearchHost } from '../types';
 import { PublishedImage } from './PublishedImage';
+import { ContentBlock } from '../components/ContentBlock';
+import '../styles/content-blocks.css';
 
 type Source = { content: PublicationContent; host: ResearchHost };
 const SourceContext = createContext<Source | null>(null);
@@ -42,11 +44,31 @@ const components: Components = {
       <table>{children}</table>
     </div>
   ),
-  pre: ({ children }) => (
-    <pre className="code-scroll" tabIndex={0}>
-      {children}
-    </pre>
-  ),
+  pre: function Code({ children, node }) {
+    const { content, host } = useSource();
+    const code = node?.children[0];
+    if (code?.type === 'element' && code.tagName === 'code') {
+      const language = String(code.properties.className ?? '').replace('language-', '');
+      const value = code.children
+        .map((child) => (child.type === 'text' ? child.value : ''))
+        .join('');
+      if (['echarts', 'metrics', 'datatable'].includes(language))
+        return (
+          <ContentBlock
+            title={content.item.title}
+            kind={language}
+            value={value}
+            reference={content.item.reference}
+            host={host}
+          />
+        );
+    }
+    return (
+      <pre className="code-scroll" tabIndex={0}>
+        {children}
+      </pre>
+    );
+  },
 };
 const plugins = [remarkGfm];
 

@@ -3,7 +3,8 @@ import type { ResearchHost } from '../types';
 import { OpenLink, PageHeader } from '../components/Common';
 import { PublicationFiles } from '../../ui/PublicationFiles';
 import { TextSelection } from '../components/TextSelection';
-import { BacktestCharts } from './BacktestCharts';
+import { BacktestPanel } from '../components/BacktestPanel';
+import { StrategyResults } from '../components/StrategyResults';
 import { PublishedMarkdown } from './PublishedMarkdown';
 
 export const natureLabel = {
@@ -12,7 +13,7 @@ export const natureLabel = {
   mixed: '混合数据',
   none: '无数值数据',
 };
-export const kindLabel = { study: '研究', strategy: '策略', run: '运行', series: '系列' };
+export const kindLabel = { study: '研究', strategy: '策略', run: '回测结果', series: '系列' };
 export function PublishedPage({
   content,
   host,
@@ -52,7 +53,6 @@ export function PublishedPage({
             </nav>
           )}
         </div>
-        <BacktestCharts content={content} host={host} />
         <TextSelection source={target} host={host}>
           <section id="body">
             <PublishedMarkdown
@@ -62,6 +62,18 @@ export function PublishedPage({
             />
           </section>
         </TextSelection>
+        {content.config?.backtest && (
+          <BacktestPanel
+            key={`${item.reference.id}:${item.reference.version}`}
+            config={content.config.backtest}
+            initial={content.config.parameters}
+            reference={item.reference}
+            host={host}
+          />
+        )}
+        {item.reference.kind === 'strategy' && host.request && (
+          <StrategyResults reference={item.reference} host={host} />
+        )}
         {content.revision_note && <p className="revision-note">{content.revision_note}</p>}
         <PublicationFiles files={content.files} open={(path) => host.previewFile?.(path)} />
       </main>

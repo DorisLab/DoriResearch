@@ -37,6 +37,7 @@ export interface PublicationPage {
   page: number;
 }
 export interface ResearchHost {
+  request?<T>(operation: string, args: Record<string, unknown>): Promise<T>;
   previewFile?(path: string): void;
   publicationActions?: import('../ui/PublicationMore').PublicationActions;
   queryPublications?(request: PublicationQuery): Promise<PublicationPage>;

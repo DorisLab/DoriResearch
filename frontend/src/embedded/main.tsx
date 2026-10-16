@@ -9,6 +9,8 @@ import type { ResearchHost } from '../types';
 import { applyAppearance, receive, send, type Init } from './bridge';
 import { readFile } from './readFile';
 import { queryPublications } from './queryPublications';
+import { request } from './request';
+import { initializeView, restoreViewScroll } from '../viewCheckpoint';
 import '../styles/base.css';
 import '../styles/studio.css';
 import '../styles/report.css';
@@ -17,6 +19,7 @@ import '../styles/bundled-fonts.css';
 import './style.css';
 
 const host: ResearchHost = {
+  request,
   protocolVersion: 1,
   previewFile: (path) => send('preview-file', path),
   queryPublications,
@@ -32,6 +35,7 @@ setDownloadHandler((path) => send('download', path));
 function EmbeddedResearch() {
   const [init, setInit] = useState<Init | null>(null);
   const actions = init?.lifecycle;
+  useEffect(() => (init ? restoreViewScroll() : undefined), [init]);
   const publicationHost = useMemo(
     () => ({
       ...host,
@@ -42,7 +46,7 @@ function EmbeddedResearch() {
   useEffect(() => {
     const unsubscribe = receive((type, payload) => {
       if (type === 'hello') {
-        send('ready', { capabilities: ['publication-reader-v1'] });
+        send('ready', { capabilities: ['publication-reader-v1', 'view-checkpoint-v1'] });
         return;
       }
       if (type === 'appearance') {
@@ -68,6 +72,7 @@ function EmbeddedResearch() {
       if (type !== 'init') return;
       applyAppearance(payload.appearance);
       const cache = { ...payload.storage };
+      initializeView(payload.viewState, cache);
       setResearchStorage({
         getItem: (key) => cache[key] ?? null,
         setItem: (key, value) => {
@@ -77,7 +82,7 @@ function EmbeddedResearch() {
       });
       setInit(payload);
     });
-    send('ready', { capabilities: ['publication-reader-v1'] });
+    send('ready', { capabilities: ['publication-reader-v1', 'view-checkpoint-v1'] });
     return unsubscribe;
   }, []);
   if (!init)

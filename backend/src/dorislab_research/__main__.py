@@ -1,5 +1,5 @@
 """Allow the native terminal to use either the installed CLI or python -m."""
 
-from .cli import main
+from .service import main
 
 main()

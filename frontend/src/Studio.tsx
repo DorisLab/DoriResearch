@@ -1,7 +1,6 @@
 import { useCallback, useLayoutEffect, useRef } from 'react';
 import { ResearchIcon } from './components/ResearchIcon';
 import { StudyEntries, StrategyEntries } from './components/StudioEntries';
-import { StudioRuns } from './components/StudioRuns';
 import { StudioToolbar, StudioPagination } from './components/StudioToolbar';
 import { useStored } from './storage';
 import { initial, valid, listView, type ListState, type Section } from './studioState';
@@ -96,7 +95,6 @@ function StudioHeader({ section, change }: { section: Section; change(section: S
           [
             { id: 'study', label: '研究' },
             { id: 'strategy', label: '策略' },
-            { id: 'run', label: '运行' },
           ] as const
         ).map(({ id, label }) => (
           <button
@@ -151,9 +149,6 @@ function StudioResults({
               )}
               {section === 'strategy' && (
                 <StrategyEntries items={page.items} publications={publications} host={host} />
-              )}
-              {section === 'run' && (
-                <StudioRuns items={page.items} publications={publications} host={host} />
               )}
             </>
           )}

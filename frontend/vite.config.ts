@@ -3,11 +3,47 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
+  server: {
+    proxy: process.env.DORIRESEARCH_SERVICE_PORT
+      ? {
+          '/research-api': {
+            target: `http://127.0.0.1:${process.env.DORIRESEARCH_SERVICE_PORT}`,
+            rewrite: () => '/rpc',
+            headers: { Authorization: `Bearer ${process.env.DORIRESEARCH_TOKEN}` },
+          },
+        }
+      : undefined,
+  },
   build: {
-    rollupOptions: {
+    rolldownOptions: {
       output: {
-        manualChunks: (id) =>
-          id.includes('/echarts/') || id.includes('/zrender/') ? 'charts' : undefined,
+        codeSplitting: {
+          groups: [
+            { name: 'chart-renderer', test: /node_modules[\\/](zrender)[\\/]/, priority: 30 },
+            {
+              name: 'chart-types',
+              maxSize: 400_000,
+              test: /node_modules[\\/]echarts[\\/]lib[\\/]chart[\\/]/,
+              priority: 30,
+            },
+            {
+              name: 'chart-components',
+              test: /node_modules[\\/]echarts[\\/]lib[\\/]component[\\/]/,
+              priority: 30,
+            },
+            { name: 'chart-core', test: /node_modules[\\/]echarts[\\/]/, priority: 20 },
+            {
+              name: 'react',
+              test: /node_modules[\\/](react|react-dom|scheduler)[\\/]/,
+              priority: 20,
+            },
+            {
+              name: 'markdown',
+              test: /node_modules[\\/](react-markdown|remark[^\\/]*|micromark[^\\/]*|mdast[^\\/]*|hast[^\\/]*|unified|unist[^\\/]*)[\\/]/,
+              priority: 20,
+            },
+          ],
+        },
       },
     },
   },

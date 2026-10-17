@@ -50,6 +50,8 @@ def dispatch(library: Library, operation: str, args: dict[str, Any]) -> Any:
     operations: dict[str, Callable[[], Any]] = {
         "health": lambda: health(library),
         "search_changes": lambda: search_sync.changes(library, args),
+        "file_path": lambda: str(library.file(reference, args["path"])),
+        "local_table_preview": lambda: file_reads.path_table_preview(args),
         "file_chunk": lambda: file_reads.chunk(library, args),
         "table_preview": lambda: file_reads.table_preview(library, args),
         "freeze": lambda: freeze(library, args),

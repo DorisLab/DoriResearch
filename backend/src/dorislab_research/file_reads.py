@@ -1,10 +1,16 @@
 """Bounded file transport with a revision check across pages."""
 
 import base64
+import json
 import mimetypes
-from typing import Any
+from collections.abc import Callable, Iterator
+from pathlib import Path
+from typing import Any, cast
+
+import pyarrow.parquet as pq
 
 from .dataset_cache import stamp
+from .dataset_stream import clean
 from .datasets import table
 from .library import Library
 
@@ -46,6 +52,62 @@ def text(library: Library, args: dict[str, Any]) -> str:
 
 def table_preview(library: Library, args: dict[str, Any]) -> dict[str, Any]:
     path = library.file(args["reference"], args["path"])
+    return _table_preview(path, args)
+
+
+def path_table_preview(args: dict[str, Any]) -> dict[str, Any]:
+    """Host-only local path, resolved by the account-aware desktop command."""
+    path = Path(args["path"])
+    if not path.is_absolute() or path.suffix.lower() != ".parquet":
+        raise ValueError("请选择本地 Parquet 文件")
+    version = stamp(path)
+    cursor = args.get("cursor") or {}
+    if cursor.get("revision", version) != version:
+        raise ValueError("文件已改变，请重新载入表格")
+    start = int(cursor.get("row", 0))
+    if start < 0 or start % 100:
+        raise ValueError("表格读取位置无效")
+    with cast(Callable[..., Any], pq.ParquetFile)(path) as file:
+        headers = file.schema_arrow.names
+        if len(headers) > 256:
+            raise ValueError("表头超过 256 列，请在系统中打开")
+        rows: list[list[str]] = []
+        size = 0
+        for row in parquet_rows(file, start):
+            cells = ["" if row.get(key) is None else str(clean(row[key])) for key in headers]
+            size += len(json.dumps(cells, ensure_ascii=False).encode())
+            if size > 4 * 1024 * 1024:
+                raise ValueError("单页内容超过 4 MiB，请在系统中打开")
+            rows.append(cells)
+            if len(rows) == 100:
+                break
+        next_row = start + len(rows)
+        more = next_row < file.metadata.num_rows
+    if stamp(path) != version:
+        raise ValueError("文件已改变，请重新载入表格")
+    return {
+        "headers": headers,
+        "rows": rows,
+        "start": start + 1,
+        "next": {"offset": next_row, "row": next_row, "revision": version} if more else None,
+    }
+
+
+def parquet_rows(file: Any, skip: int) -> Iterator[dict[str, Any]]:
+    for group in range(file.num_row_groups):
+        count = file.metadata.row_group(group).num_rows
+        if skip >= count:
+            skip -= count
+            continue
+        for batch in file.iter_batches(batch_size=100, row_groups=[group]):
+            if skip >= batch.num_rows:
+                skip -= batch.num_rows
+                continue
+            yield from batch.slice(skip).to_pylist()
+            skip = 0
+
+
+def _table_preview(path: Path, args: dict[str, Any]) -> dict[str, Any]:
     version = stamp(path)
     cursor = args.get("cursor") or {}
     if cursor.get("revision", version) != version:
@@ -59,7 +121,7 @@ def table_preview(library: Library, args: dict[str, Any]) -> dict[str, Any]:
         raise ValueError("文件已改变，请重新载入表格")
     return {
         "headers": page["columns"],
-        "start": start,
+        "start": start + 1,
         "rows": [[str(row.get(key, "")) for key in page["columns"]] for row in page["rows"]],
         "next": {"offset": next_row, "row": next_row, "revision": version}
         if next_row < page["total"]

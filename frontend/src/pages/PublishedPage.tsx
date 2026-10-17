@@ -1,3 +1,5 @@
+import { SavedTime } from '../components/SavedTime';
+import { publicationLabel } from '../components/StudioEntries';
 import type { PublicationContent } from '../publicationContracts';
 import type { ResearchHost } from '../types';
 import { OpenLink, PageHeader } from '../components/Common';
@@ -7,12 +9,6 @@ import { BacktestPanel } from '../components/BacktestPanel';
 import { StrategyResults } from '../components/StrategyResults';
 import { PublishedMarkdown } from './PublishedMarkdown';
 
-export const natureLabel = {
-  real: '真实数据',
-  synthetic: '合成数据',
-  mixed: '混合数据',
-  none: '无数值数据',
-};
 export const kindLabel = { study: '研究', strategy: '策略', run: '回测结果', series: '系列' };
 export function PublishedPage({
   content,
@@ -25,17 +21,11 @@ export function PublishedPage({
   const target = { ...item.reference, title: item.title };
   return (
     <div className="report-page research-content">
-      <PageHeader
-        target={target}
-        host={host}
-        label={`${kindLabel[target.kind]} · v${target.version}`}
-        summary={item.summary}
-      />
+      <PageHeader target={target} host={host} summary={item.summary} />
       <main className="report-body published-body">
         <div className="source-note">
-          {item.origin === 'example' && <span className="source-mark">示例</span>}
-          {natureLabel[item.data_nature]} · 保存于{' '}
-          {new Date(item.registered_at).toLocaleDateString()}
+          {publicationLabel(item) && <span className="source-mark">{publicationLabel(item)}</span>}
+          <SavedTime value={item.registered_at} />
           {content.references.length > 0 && (
             <nav aria-label="关联成果">
               {content.references.map((reference) => (

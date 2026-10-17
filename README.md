@@ -53,6 +53,8 @@ content = library.content(reference)
 - 图表配置是 ECharts option，或 `{"data":"curve.parquet","option":{...}}`。data 相对配置文件，支持 JSON 记录数组、CSV、TSV、Parquet；通过 dataset 列名与 encode 引用数据，无需转存 JSON。配置不含可执行函数。
 - 图表宽度随页面变化，默认高度 360px；复杂比较可拆成多个 echarts 块，避免把多个子图挤在同一画布。主题更新不覆盖配置中的网格布局、坐标轴归属或缩放目标。
 - 数据表支持相同数据格式，可搜索、排序、分页。局部读取错误不阻止其他正文阅读。
+- 文件侧栏预览由客户端统一管理。控制面通过 `file_path` 解析已校验的资料库文件；`local_table_preview` 为控制面解析后的本地 Parquet 提供每页 100 行的按需读取，游标绑定文件版本。这两个操作不向研究页面开放任意路径访问。
+- 列表与详情统一显示本地保存时间（年月日 时:分）；真实数据不重复贴标签，示例及模拟／混合数据继续明确说明。
 - 静态图片仍可使用，charting.py 提供可选 Matplotlib 样式；无需为了复用阅读页编写 React。
 
 ## 策略与手动回测

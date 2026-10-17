@@ -237,17 +237,11 @@
   border-radius: var(--radius-control, 8px);
   --row-highlight:
     radial-gradient(
-      ellipse 38% 65% at 50% 0%,
-      color-mix(in srgb, var(--accent) 24%, transparent),
-      color-mix(in srgb, var(--accent) 9%, transparent) 42%,
+      ellipse 38% 18px at 50% 0%,
+      color-mix(in srgb, var(--accent) 20%, transparent),
       transparent 100%
     ),
-    radial-gradient(
-      ellipse 75% 100% at 50% 100%,
-      color-mix(in srgb, var(--text) 8%, transparent),
-      color-mix(in srgb, var(--text) 3%, transparent) 50%,
-      transparent 100%
-    );
+    linear-gradient(rgb(128 128 128 / 8%), rgb(128 128 128 / 8%));
 }
 .study-card:hover,
 .strategy-row:hover,
@@ -272,7 +266,7 @@
   align-items: center;
   gap: 8px;
   flex: 1 1 200px;
-  max-width: 360px;
+  min-width: 0;
   height: var(--control-height, 34px);
   border: 1px solid var(--control-border, var(--line));
   border-radius: 8px;

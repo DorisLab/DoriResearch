@@ -29,15 +29,17 @@ export function PageHeader({
 }: {
   target: Target;
   host: ResearchHost;
-  label: string;
+  label?: string;
   summary?: string;
 }) {
   return (
     <header className="page-header">
-      <div className="eyebrow">
-        {label}
-        {host.publicationActions?.archived && <span>已归档</span>}
-      </div>
+      {(label || host.publicationActions?.archived) && (
+        <div className="eyebrow">
+          {label}
+          {host.publicationActions?.archived && <span>已归档</span>}
+        </div>
+      )}
       <div className="heading-row">
         <h1>
           <ResearchIcon kind={target.kind} />

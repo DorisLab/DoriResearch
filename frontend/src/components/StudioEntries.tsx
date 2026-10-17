@@ -1,3 +1,4 @@
+import { SavedTime } from './SavedTime';
 import type { PublicationRef, PublicationSummary } from '../publicationContracts';
 import { type ResearchHost, type Target } from '../types';
 import { ResearchIcon } from './ResearchIcon';
@@ -72,7 +73,7 @@ export function StudyEntries({
             <p>{item.summary || '暂无摘要'}</p>
             <div className="entry-meta">
               {publicationLabel(item) && <span>{publicationLabel(item)}</span>}
-              <span>保存于 {new Date(item.registered_at).toLocaleDateString()}</span>
+              <SavedTime value={item.registered_at} />
               {studySeries(item, publications).map((ref) => (
                 <OpenLink key={ref.id} target={referenceTarget(ref, publications)} host={host} />
               ))}
@@ -113,7 +114,7 @@ export function StrategyEntries({
               <EntryTitle target={{ ...item.reference, title: item.title }} host={host} />
               <p>{item.summary || '暂无规则摘要'}</p>
               <div className="entry-meta">
-                <span>策略版本 {versionLabel(item.reference.version)}</span>
+                <SavedTime value={item.registered_at} />
                 {publicationLabel(item) && <span>{publicationLabel(item)}</span>}
                 <span title="未归档运行的最新成果中，关联此策略版本的数量">
                   当前版本 · {count} 次运行

@@ -123,3 +123,32 @@ def test_stream_validation_cache_refresh_and_revision_bound_file_reads(tmp_path:
     library.file(item, "large.txt").write_bytes(b"changed")
     with pytest.raises(ValueError, match="改变"):
         dispatch(library, "file_chunk", {**args, "revision": first["revision"]})
+
+
+def test_host_file_resolver_and_parquet_preview_keep_boundaries(tmp_path: Path) -> None:
+    path = tmp_path / "rows.parquet"
+    values = [{"序号": n, "说明": None if n == 204 else "中文"} for n in range(205)]
+    cast(Callable[..., Any], pq.write_table)(pa.Table.from_pylist(values), path, row_group_size=37)
+    migrate(tmp_path)
+    library = Library(tmp_path)
+    ref = library.save(kind="study", title="预览", body="", files={"rows.parquet": path})
+    saved = dispatch(library, "file_path", {"reference": ref, "path": "rows.parquet"})
+    assert Path(saved) == library.file(ref, "rows.parquet")
+    for invalid in ("../rows.parquet", str(path)):
+        with pytest.raises(ValueError):
+            dispatch(library, "file_path", {"reference": ref, "path": invalid})
+    first = dispatch(library, "local_table_preview", {"path": saved})
+    assert first["start"] == 1 and len(first["rows"]) == 100
+    second = dispatch(library, "local_table_preview", {"path": saved, "cursor": first["next"]})
+    assert second["start"] == 101 and second["rows"][0][0] == "100"
+    last = dispatch(library, "local_table_preview", {"path": saved, "cursor": second["next"]})
+    assert last["start"] == 201 and last["rows"][-1] == ["204", ""] and last["next"] is None
+    Path(saved).write_bytes(b"corrupt")
+    with pytest.raises(ValueError, match="改变"):
+        dispatch(library, "local_table_preview", {"path": saved, "cursor": first["next"]})
+    from dorislab_research.library_queries import delete
+
+    archive(library, ref, True)
+    delete(library, [ref["id"]])
+    with pytest.raises(ValueError):
+        dispatch(library, "file_path", {"reference": ref, "path": "rows.parquet"})

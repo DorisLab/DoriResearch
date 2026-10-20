@@ -9,7 +9,7 @@
   padding: 4px;
   border: 1px solid var(--border);
   border-radius: var(--radius-control, 6px);
-  background: var(--canvas);
+  background: var(--canvas, #fff);
   color: var(--text);
   box-shadow: 0 3px 12px #0002;
   font-family: var(--font-ui);
@@ -51,12 +51,17 @@
   min-height: var(--button-height, 32px);
   border-radius: var(--radius-control, 6px);
   color: var(--text);
-  background: var(--canvas);
+  background: var(--canvas, #fff);
   border: 1px solid var(--border);
   box-shadow: 0 3px 12px #0002;
 }
 .reading-selection-action:hover {
-  background: var(--hover);
+  background:
+    linear-gradient(var(--hover, #00000008), var(--hover, #00000008)), var(--canvas, #fff);
+}
+button.reading-selection-action:not(:disabled):not([aria-disabled='true']):active {
+  background:
+    linear-gradient(var(--pressed, #0000000f), var(--pressed, #0000000f)), var(--canvas, #fff);
 }
 .reading-selection-action svg {
   width: 1.2em;

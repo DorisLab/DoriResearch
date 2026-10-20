@@ -1,4 +1,5 @@
 import { SavedTime } from './SavedTime';
+import { Tooltip } from '../../ui/Tooltip';
 import type { PublicationRef, PublicationSummary } from '../publicationContracts';
 import { type ResearchHost, type Target } from '../types';
 import { ResearchIcon } from './ResearchIcon';
@@ -116,9 +117,9 @@ export function StrategyEntries({
               <div className="entry-meta">
                 <SavedTime value={item.registered_at} />
                 {publicationLabel(item) && <span>{publicationLabel(item)}</span>}
-                <span title="未归档运行的最新成果中，关联此策略版本的数量">
-                  当前版本 · {count} 次运行
-                </span>
+                <Tooltip content="未归档运行的最新成果中，关联此策略版本的数量">
+                  <span tabIndex={0}>当前版本 · {count} 次运行</span>
+                </Tooltip>
                 {studies.length ? (
                   studies.map((ref) => (
                     <OpenLink

@@ -52,7 +52,7 @@ export function PublicationFiles({
             {files.map((file) => {
               const separator = file.path.lastIndexOf('/') + 1;
               return (
-                <button key={file.path} title={file.path} onClick={() => open(file.path)}>
+                <button key={file.path} onClick={() => open(file.path)}>
                   {separator > 0 && <span>{file.path.slice(0, separator)}</span>}
                   {file.path.slice(separator)}
                 </button>

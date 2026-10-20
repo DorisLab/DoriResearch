@@ -11,6 +11,20 @@ function select(node: Node) {
   fireEvent(document, new Event('selectionchange'));
 }
 
+test('code select all excludes format notices and preserves the final source newline', () => {
+  const view = render(
+    <ReadingRegion>
+      <p role="status">格式化不可用</p>
+      <pre className="file-code">original{'\n'}</pre>
+    </ReadingRegion>,
+  );
+  const root = view.container.querySelector('.reading-region')!;
+  fireEvent.keyDown(root, { key: 'a', ctrlKey: true });
+  const data = { setData: vi.fn() };
+  fireEvent.copy(root, { clipboardData: data });
+  expect(data.setData).toHaveBeenCalledWith('text/plain', 'original\n');
+});
+
 test('select all is scoped to one reader, preserves input editing and copies plain text', () => {
   const view = render(
     <>

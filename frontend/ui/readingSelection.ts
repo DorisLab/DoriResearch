@@ -32,7 +32,7 @@ export function restoreSelection(root: HTMLElement, value: ReadingSelection | nu
 
 export function selectReading(root: HTMLElement): ReadingSelection | null {
   const range = root.ownerDocument.createRange();
-  range.selectNodeContents(root);
+  range.selectNodeContents(root.querySelector('.file-code') ?? root);
   restoreSelection(root, { text: '', range });
   return readSelection(root);
 }

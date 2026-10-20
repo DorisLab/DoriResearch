@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useRef, type ReactNode } from 'react';
 import * as Menu from '@radix-ui/react-context-menu';
 import { ChatCircleDots as MessageCirclePlus } from '@phosphor-icons/react';
 import { editingTarget, readSelection, type ReadingSelection } from './readingSelection';
@@ -99,14 +99,19 @@ function ReadingMenu({
   quote(): void;
   restore(): void;
 }) {
+  const outside = useRef(false);
   return (
     <Menu.Portal>
       <Menu.Content
         className="reading-menu"
         collisionPadding={8}
+        onInteractOutside={() => {
+          outside.current = true;
+        }}
         onCloseAutoFocus={(event) => {
           event.preventDefault();
-          restore();
+          if (!outside.current) restore();
+          outside.current = false;
         }}
       >
         <Menu.Item disabled={!selected} onSelect={copy}>

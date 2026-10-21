@@ -50,6 +50,10 @@ export function observeReadingSelection(
   window.addEventListener('resize', hide);
   return {
     hide,
+    refresh: () => {
+      previous = null;
+      update();
+    },
     dispose: () => {
       hide();
       document.removeEventListener('selectionchange', update);

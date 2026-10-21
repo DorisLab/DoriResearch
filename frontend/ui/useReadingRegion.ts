@@ -16,6 +16,7 @@ export function useReadingRegion(reference?: (value: ReadingSelection) => void |
   const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
   const [error, setError] = useState('');
   const dismiss = useRef(() => setPosition(null));
+  const refresh = useRef(() => {});
   useEffect(() => {
     if (!root.current) return;
     const observer = observeReadingSelection(
@@ -28,6 +29,7 @@ export function useReadingRegion(reference?: (value: ReadingSelection) => void |
       (value) => setPosition(selectionPosition(value)),
     );
     dismiss.current = observer.hide;
+    refresh.current = observer.refresh;
     return observer.dispose;
   }, []);
   return {
@@ -50,6 +52,7 @@ export function useReadingRegion(reference?: (value: ReadingSelection) => void |
     all: () => {
       if (root.current) saved.current = selectReading(root.current);
       setSelected(saved.current);
+      refresh.current();
     },
     copy: () => {
       if (root.current && saved.current)

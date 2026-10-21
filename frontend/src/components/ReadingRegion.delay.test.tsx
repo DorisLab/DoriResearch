@@ -38,6 +38,17 @@ test('selection waits for release and a quiet interval; cancellation never resur
     expect(action()).toBeNull();
     advance(50);
     expect(action()).not.toBeNull();
+    fireEvent.keyDown(root, { key: 'a', ctrlKey: true });
+    advance(300);
+    fireEvent.keyDown(root, { key: 'Escape' });
+    fireEvent(document, new Event('selectionchange'));
+    advance(400);
+    expect(action()).toBeNull();
+    fireEvent.keyDown(root, { key: 'a', ctrlKey: true });
+    advance(250);
+    expect(action()).toBeNull();
+    advance(50);
+    expect(action()).not.toBeNull();
     select(1);
     expect(action()).toBeNull();
     fireEvent.keyDown(root, { key: 'Escape' });

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { observeReadingSelection } from './observeReadingSelection';
 import {
   copyReading,
   readSelection,
@@ -14,36 +15,33 @@ export function useReadingRegion(reference?: (value: ReadingSelection) => void |
   const [selected, setSelected] = useState<ReadingSelection | null>(null);
   const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
   const [error, setError] = useState('');
+  const dismiss = useRef(() => setPosition(null));
   useEffect(() => {
-    const update = () => {
-      if (menuOpen.current) return;
-      const value = readSelection(root.current);
-      saved.current = value;
-      setSelected(value);
-      setPosition(selectionPosition(value));
-    };
-    const hide = () => setPosition(null);
-    document.addEventListener('selectionchange', update);
-    window.addEventListener('scroll', hide, true);
-    window.addEventListener('resize', hide);
-    return () => {
-      document.removeEventListener('selectionchange', update);
-      window.removeEventListener('scroll', hide, true);
-      window.removeEventListener('resize', hide);
-    };
+    if (!root.current) return;
+    const observer = observeReadingSelection(
+      root.current,
+      () => menuOpen.current,
+      (value) => {
+        saved.current = value;
+        setSelected(value);
+      },
+      (value) => setPosition(selectionPosition(value)),
+    );
+    dismiss.current = observer.hide;
+    return observer.dispose;
   }, []);
   return {
     root,
     selected,
     position,
     error,
-    hide: () => setPosition(null),
+    hide: () => dismiss.current(),
     open: (open: boolean) => {
       menuOpen.current = open;
       if (open) {
         saved.current = readSelection(root.current);
         setSelected(saved.current);
-        setPosition(null);
+        dismiss.current();
       }
     },
     restore: () => {
@@ -65,7 +63,7 @@ export function useReadingRegion(reference?: (value: ReadingSelection) => void |
         void Promise.resolve()
           .then(() => reference(value))
           .catch((cause) => setError(String(cause)));
-      setPosition(null);
+      dismiss.current();
     },
   };
 }

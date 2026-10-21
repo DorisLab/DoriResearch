@@ -1,0 +1,43 @@
+/* 原始 OTF 文件按其 OS/2 字重声明；不依赖本机安装。 */
+@font-face {
+  font-family: 'Dorislab Alibaba Sans';
+  src: url('../assets/fonts/AlibabaSans-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Dorislab Alibaba Sans';
+  src: url('../assets/fonts/AlibabaSans-Light.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Dorislab Alibaba Sans';
+  src: url('../assets/fonts/AlibabaSans-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Dorislab Alibaba Sans';
+  src: url('../assets/fonts/AlibabaSans-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Dorislab Alibaba Sans';
+  src: url('../assets/fonts/AlibabaSans-Heavy.otf') format('opentype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Dorislab Alibaba Sans';
+  src: url('../assets/fonts/AlibabaSans-Black.otf') format('opentype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}

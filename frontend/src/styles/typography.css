@@ -1,0 +1,113 @@
+/* Same UI / content / code scopes as the desktop appearance contract. */
+:root {
+  --ui-font-size: 15px;
+  --content-font-size: 15px;
+  --code-font-size: 15px;
+  --font-ui: 'Segoe UI', 'Microsoft YaHei UI', sans-serif;
+  --font-content: var(--font-ui);
+  --font-code: ui-monospace, 'Microsoft YaHei UI', monospace;
+  --icon-size: calc(var(--ui-font-size) * 16 / 15);
+}
+body,
+:is(button, input, textarea, select):not(.title-link, .content-link),
+.eyebrow,
+.muted,
+.source-note,
+.chart-caption,
+.metric-strip span,
+.provenance,
+figcaption,
+caption,
+small,
+dt {
+  font-family: var(--font-ui);
+  font-size: var(--ui-font-size);
+  font-weight: var(--font-ui-weight, 400);
+  font-style: var(--font-ui-style, normal);
+  font-stretch: var(--font-ui-stretch, normal);
+}
+.research-content,
+.study-copy p,
+.strategy-row p,
+.lede,
+table,
+.facts dd {
+  font-family: var(--font-content);
+  font-size: var(--content-font-size);
+  font-weight: var(--font-content-weight, 400);
+  font-style: var(--font-content-style, normal);
+  font-stretch: var(--font-content-stretch, normal);
+}
+code,
+pre {
+  font-family: var(--font-code);
+  font-size: var(--code-font-size);
+  font-weight: var(--font-code-weight, 400);
+  font-style: var(--font-code-style, normal);
+  font-stretch: var(--font-code-stretch, normal);
+  line-height: 1.6;
+}
+pre {
+  overflow: auto;
+}
+.title-link,
+.content-link {
+  font: inherit;
+}
+.research-icon {
+  width: var(--icon-size);
+  height: var(--icon-size);
+  flex-shrink: 0;
+}
+.chart-canvas svg text {
+  font-stretch: var(--font-ui-stretch, normal);
+}
+:root[data-motion='reduce'] .artifact-scroll {
+  scroll-behavior: auto;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion='full']) .artifact-scroll {
+    scroll-behavior: auto;
+  }
+}
+
+/* Host-owned reading pages use the same heading scale as desktop Markdown. */
+.research-content {
+  line-height: 1.65;
+}
+.research-content :is(h1, h2, h3, h4, h5, h6) {
+  font-weight: 600;
+  line-height: 1.3;
+}
+.research-content h1 {
+  font-size: 1.6em;
+}
+.research-content h2 {
+  font-size: 1.35em;
+}
+.research-content h3 {
+  font-size: 1.15em;
+}
+.research-content h4 {
+  font-size: 1.075em;
+}
+.research-content h5 {
+  font-size: 1em;
+}
+.research-content h6 {
+  font-size: 1em;
+  font-weight: 500;
+}
+.research-content :is(strong, b) {
+  font-weight: bolder;
+}
+.report-body p {
+  line-height: 1.65;
+}
+
+:is(.heading-row h1, .title-link) > svg[data-icon] {
+  width: 0.9em;
+  height: 0.9em;
+  margin-right: 8px;
+  vertical-align: -0.08em;
+}

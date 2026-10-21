@@ -1,0 +1,58 @@
+[build-system]
+requires = ["hatchling==1.32.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "dorislab-research"
+version = "0.1.0"
+description = "Editable research workspace for Dorislab"
+license = "MIT"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+  "alembic==1.20.0",
+  "doribt[plot]==0.6.2",
+  "numpy==2.5.3",
+  "pyarrow==24.0.0",
+  "pydantic==2.13.5",
+  "sqlalchemy==2.1.4",
+]
+
+[project.scripts]
+dorislab-research = "dorislab_research.service:main"
+
+[dependency-groups]
+dev = ["pytest==9.1.1", "ruff==0.16.7", "mypy==2.3.1", "pip-audit==2.10.1", "hatchling==1.32.0"]
+
+[tool.uv]
+required-version = "==0.13.4"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/dorislab_research"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"uv.lock" = "dorislab_research/locks/uv.lock"
+"pyproject.toml" = "dorislab_research/locks/pyproject.toml"
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "C90"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+files = ["src", "tests"]
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = ["pyarrow", "pyarrow.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--strict-config --strict-markers -ra"

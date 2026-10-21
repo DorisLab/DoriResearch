@@ -24,6 +24,6 @@ jobs:
         with:
           node-version-file: .node-version
       - name: Install locked Python package manager
-        run: python -m pip install uv==0.12.18
+        run: python -m pip install uv==0.13.4
       - name: Verify standalone project
         run: ./scripts/check.ps1

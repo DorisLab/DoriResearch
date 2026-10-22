@@ -25,9 +25,16 @@ reference = library.save(
     data_nature="real",
 )
 content = library.content(reference)
+print(library.links(reference))
 ```
 
 `kind` 支持 `study`、`strategy`、策略结果 `run`。`references` 存关联引用，`config` 存功能配置。更新同一条内容传 `id` 和 `expected_revision`；冲突抛出 `ConflictError`，先重新读取并整合。
+
+保存后用 `library.links(reference)` 取得可直接用于回复的文档 `markdown` 和附件 `files[].markdown`；`content["links"]` 也提供同一回执。附件链接绑定已保存的修订和持久文件，不依赖原对话工作区。文件名中的空格、中文和特殊字符由 API 转义。页面正文中的文件链接使用 `files[].body_markdown` 对应的相对路径形式，例如 `[策略代码](sse50_grid_guojin.py)`；正文撰写时按 `files` 中实际的名称链接。
+
+交付策略时，把完整代码保存为附件，正文解释规则、使用方法和验证结果，回复附可点击的代码与策略页面链接；用户明确要求时再在对话贴完整代码。页面头部已展示标题和摘要，正文从实质内容或章节开始。
+
+`references` 仍精确保留研究依据的修订号；`content["related"]` 是独立的双向导航，按内容身份去重、排除自身，名称和跳转使用当前修订。其他内容引用本页后会自动出现，无需改写本页的旧依据。归档或删除内容不新增反向入口，已引用且删除的内容保留名称与不可用状态。
 
 正文保存为 report.md，files 只列要保留的普通文件，不需要清单、哈希或证明材料。每次修改保留独立内容修订，历史引用仍可读取。SQLite 在持久目录的 research.sqlite3，文件在 files/；它们不进入源码 Git。缓存和中间行情不必保存进资料库。归档、删除不级联影响关联内容。
 

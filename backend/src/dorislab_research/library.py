@@ -11,6 +11,7 @@ import uuid
 from pathlib import Path
 from typing import Any
 
+from . import library_navigation
 from .database import connect, data_root, writable
 
 
@@ -144,6 +145,15 @@ class Library:
         record = self.record(reference)
         return local_file(self.root / "files" / record["directory"], path)
 
+    def links(self, reference: dict[str, str]) -> dict[str, Any]:
+        """Return copy-ready document and attachment Markdown for a saved revision."""
+        record = self.record(reference)
+        directory = self.root / "files" / record["directory"]
+        paths = [
+            p.relative_to(directory).as_posix() for p in sorted(directory.rglob("*")) if p.is_file()
+        ]
+        return library_navigation.links(record, paths)
+
     def content(self, reference: dict[str, str]) -> dict[str, Any]:
         from .library_queries import summary
 
@@ -160,11 +170,15 @@ class Library:
             for p in sorted(directory.rglob("*"))
             if p.is_file()
         ]
+        with connect(self.root) as db:
+            related = library_navigation.related(db, record)
         return {
             "item": {**summary(record), "files": files},
             "body": (directory / "report.md").read_text(encoding="utf-8-sig"),
             "files": files,
             "references": json.loads(record["references_json"]),
+            "related": related,
+            "links": library_navigation.links(record, [file["path"] for file in files]),
             "revision_note": "",
             "config": json.loads(record["config_json"]),
         }

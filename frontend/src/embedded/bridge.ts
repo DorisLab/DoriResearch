@@ -8,6 +8,7 @@ export interface Appearance {
   variables: Record<string, string>;
 }
 export interface Init {
+  related?: PublicationContent['related'];
   viewState?: unknown;
   lifecycle?: { archived: boolean; busy: boolean };
   publications?: PublicationSummary[];

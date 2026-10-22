@@ -13,7 +13,14 @@ export type PublicationContent = {
   item: PublicationSummary;
   previous?: PublicationRef | null;
   references: Array<PublicationRef>;
+  related?: Array<RelatedPublication>;
   revision_note: string;
+};
+
+export type RelatedPublication = {
+  reference: PublicationRef;
+  title: string;
+  unavailable?: boolean;
 };
 
 export interface BacktestConfig {

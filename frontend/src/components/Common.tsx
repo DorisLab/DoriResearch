@@ -26,11 +26,13 @@ export function PageHeader({
   host,
   label,
   summary,
+  metadata,
 }: {
   target: Target;
   host: ResearchHost;
   label?: string;
   summary?: string;
+  metadata?: ReactNode;
 }) {
   return (
     <header className="page-header">
@@ -45,6 +47,10 @@ export function PageHeader({
           <ResearchIcon kind={target.kind} />
           {target.title}
         </h1>
+      </div>
+      {summary && <p className="lede">{summary}</p>}
+      <div className="report-toolbar">
+        <div className="report-metadata">{metadata}</div>
         <div className="report-actions">
           <button className="primary" onClick={() => host.reference(objectReference(target))}>
             <ChatCircleDots />
@@ -53,7 +59,6 @@ export function PageHeader({
           {host.publicationActions && <PublicationMore {...host.publicationActions} />}
         </div>
       </div>
-      {summary && <p className="lede">{summary}</p>}
     </header>
   );
 }

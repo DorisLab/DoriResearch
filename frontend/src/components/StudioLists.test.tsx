@@ -39,7 +39,7 @@ const run: PublicationSummary = {
 };
 const host: ResearchHost = { protocolVersion: 1, open: vi.fn(), reference: vi.fn() };
 
-it('keeps studies compact, counts only exact strategy versions and opens historical sources exactly', async () => {
+it('counts runs across revisions and opens related current content by full name', async () => {
   const publications = [
     study,
     strategy,
@@ -57,12 +57,11 @@ it('keeps studies compact, counts only exact strategy versions and opens histori
     </>,
   );
   expect(screen.getByRole('heading', { name: '正式研究' })).toBeVisible();
-  expect(screen.getByText('当前版本 · 1 次运行')).toBeVisible();
-  await userEvent.click(screen.getByRole('button', { name: '关联研究 · v1' }));
+  expect(screen.getByText('2 次运行')).toBeVisible();
+  await userEvent.click(screen.getAllByRole('button', { name: '正式研究' })[1]);
   expect(host.open).toHaveBeenLastCalledWith({
     ...study.reference,
-    version: '1',
-    title: '关联研究',
+    title: '正式研究',
   });
 });
 it('opens row and keyboard targets while preserving text selection and nested actions', async () => {

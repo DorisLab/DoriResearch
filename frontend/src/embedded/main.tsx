@@ -33,9 +33,14 @@ const host: ResearchHost = {
 setDownloadHandler((path) => send('download', path));
 
 function EmbeddedResearch() {
-  const [init, setInit] = useState<Init | null>(null);
+  const init = useEmbeddedState();
   const actions = init?.lifecycle;
-  useEffect(() => (init ? restoreViewScroll() : undefined), [init]);
+  const view = init
+    ? init.target
+      ? `${init.target.kind}:${init.target.id}@${init.target.version}`
+      : 'studio'
+    : null;
+  useEffect(() => (view ? restoreViewScroll() : undefined), [view]);
   const publicationHost = useMemo(
     () => ({
       ...host,
@@ -43,6 +48,27 @@ function EmbeddedResearch() {
     }),
     [actions],
   );
+  if (!init)
+    return (
+      <div className="empty" role="status">
+        正在读取研究内容…
+      </div>
+    );
+  return init.target ? (
+    <div className="artifact-scroll">
+      {init.publication ? (
+        <PublishedPage content={init.publication} host={publicationHost} />
+      ) : (
+        <p className="empty">这个成果暂不可用。</p>
+      )}
+    </div>
+  ) : (
+    <Studio host={host} publications={init.publications} />
+  );
+}
+
+function useEmbeddedState() {
+  const [init, setInit] = useState<Init | null>(null);
   useEffect(() => {
     const unsubscribe = receive((type, payload) => {
       if (type === 'hello') {
@@ -69,6 +95,17 @@ function EmbeddedResearch() {
         );
         return;
       }
+      if (type === 'related') {
+        setInit((current) =>
+          current?.publication
+            ? {
+                ...current,
+                publication: { ...current.publication, related: payload.related },
+              }
+            : current,
+        );
+        return;
+      }
       if (type !== 'init') return;
       applyAppearance(payload.appearance);
       const cache = { ...payload.storage };
@@ -85,23 +122,7 @@ function EmbeddedResearch() {
     send('ready', { capabilities: ['publication-reader-v1', 'view-checkpoint-v1'] });
     return unsubscribe;
   }, []);
-  if (!init)
-    return (
-      <div className="empty" role="status">
-        正在读取研究内容…
-      </div>
-    );
-  return init.target ? (
-    <div className="artifact-scroll">
-      {init.publication ? (
-        <PublishedPage content={init.publication} host={publicationHost} />
-      ) : (
-        <p className="empty">这个成果暂不可用。</p>
-      )}
-    </div>
-  ) : (
-    <Studio host={host} publications={init.publications} />
-  );
+  return init;
 }
 createRoot(document.getElementById('root')!).render(
   <IconContext.Provider value={{ weight: 'light', className: 'research-icon' }}>

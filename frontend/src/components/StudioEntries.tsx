@@ -1,5 +1,4 @@
 import { SavedTime } from './SavedTime';
-import { Tooltip } from '../../ui/Tooltip';
 import type { PublicationRef, PublicationSummary } from '../publicationContracts';
 import { type ResearchHost, type Target } from '../types';
 import { ResearchIcon } from './ResearchIcon';
@@ -8,7 +7,6 @@ import { PublicationCover } from './PublicationCover';
 import { entryInteraction } from './EntryInteraction';
 import { SeparatedEntries } from './SeparatedEntries';
 
-export const versionLabel = (version: string) => (/^v/i.test(version) ? version : `v${version}`);
 export const sameReference = (a: PublicationRef, b: PublicationRef) =>
   a.kind === b.kind && a.id === b.id && a.version === b.version;
 export const publicationLabel = (item: PublicationSummary) =>
@@ -24,9 +22,11 @@ export const publicationLabel = (item: PublicationSummary) =>
     .join(' · ');
 
 export function referenceTarget(ref: PublicationRef, items: PublicationSummary[]): Target {
-  const item = items.find((item) => sameReference(item.reference, ref));
+  const item = items.find(
+    (item) => item.reference.kind === ref.kind && item.reference.id === ref.id,
+  );
   const kind = { study: '研究', strategy: '策略', run: '运行', series: '系列' }[ref.kind];
-  return { ...ref, title: item?.title ?? `关联${kind}` };
+  return { ...(item?.reference ?? ref), title: item?.title ?? `关联${kind}已不可用` };
 }
 
 export function EntryTitle({ target, host }: { target: Target; host: ResearchHost }) {
@@ -99,11 +99,17 @@ export function StrategyEntries({
   return (
     <SeparatedEntries className="strategy-list">
       {items.map((item) => {
-        const studies = (item.references ?? []).filter((ref) => ref.kind === 'study');
+        const studies = [
+          ...new Map(
+            (item.references ?? [])
+              .filter((ref) => ref.kind === 'study')
+              .map((ref) => [ref.id, ref]),
+          ).values(),
+        ];
         const count = publications.filter(
           (run) =>
             run.reference.kind === 'run' &&
-            run.references?.some((ref) => sameReference(ref, item.reference)),
+            run.references?.some((ref) => ref.kind === 'strategy' && ref.id === item.reference.id),
         ).length;
         return (
           <article
@@ -117,9 +123,9 @@ export function StrategyEntries({
               <div className="entry-meta">
                 <SavedTime value={item.registered_at} />
                 {publicationLabel(item) && <span>{publicationLabel(item)}</span>}
-                <Tooltip content="未归档运行的最新成果中，关联此策略版本的数量">
-                  <span tabIndex={0}>当前版本 · {count} 次运行</span>
-                </Tooltip>
+                <span>{count} 次运行</span>
+              </div>
+              <div className="entry-relations">
                 {studies.length ? (
                   studies.map((ref) => (
                     <OpenLink
@@ -127,7 +133,7 @@ export function StrategyEntries({
                       target={referenceTarget(ref, publications)}
                       host={host}
                     >
-                      {referenceTarget(ref, publications).title} · {versionLabel(ref.version)}
+                      {referenceTarget(ref, publications).title}
                     </OpenLink>
                   ))
                 ) : (

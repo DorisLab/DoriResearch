@@ -16,20 +16,67 @@
   margin: auto;
 }
 .page-header {
-  margin-bottom: 36px;
+  margin-bottom: 24px;
 }
 .heading-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 24px;
   margin-top: 12px;
+  overflow-wrap: anywhere;
 }
 .lede {
   color: var(--muted);
   margin: 16px 0 0;
 }
 .report-body {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.published-body {
+  border-top: 1px solid var(--line);
+}
+.report-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px 24px;
+  margin-top: 16px;
+}
+.report-metadata {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+}
+.report-toolbar .report-actions {
+  margin-left: auto;
+}
+.related-publications {
+  margin-bottom: 24px;
+}
+.related-publications > p {
+  margin: 0 0 8px;
+}
+.related-publications ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.related-publication {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 8px;
+  margin-left: -8px;
+  text-align: left;
+  line-height: 1.5;
+}
+.related-publication > svg {
+  flex: none;
+  margin-top: 0.2em;
+}
+.related-publication > span {
   min-width: 0;
   overflow-wrap: anywhere;
 }
@@ -78,15 +125,6 @@
 }
 .report-body p {
   line-height: 1.95;
-}
-.source-note {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 10px;
-  color: var(--muted);
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--line);
 }
 .source-mark {
   color: #846b46;
@@ -160,9 +198,5 @@
 @media (max-width: 850px) {
   .report-page {
     padding: 48px 24px 64px;
-  }
-  .heading-row {
-    flex-wrap: wrap;
-    gap: 16px;
   }
 }

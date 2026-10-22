@@ -5,6 +5,7 @@ import type { PublicationContent } from '../publicationContracts';
 import type { ResearchHost } from '../types';
 import { PublishedImage } from './PublishedImage';
 import { ContentBlock } from '../components/ContentBlock';
+import { attachmentPath, remarkAttachmentLinks } from '../components/attachmentLinks';
 import '../styles/content-blocks.css';
 
 type Source = { content: PublicationContent; host: ResearchHost };
@@ -23,8 +24,12 @@ const components: Components = {
   },
   a: function Link({ href, children }) {
     const { content, host } = useSource();
-    return content.files.some((file) => file.path === href) ? (
-      <button className="text-link" onClick={() => host.previewFile?.(href!)}>
+    const path = attachmentPath(
+      href,
+      content.files.map((file) => file.path),
+    );
+    return path && host.previewFile ? (
+      <button className="text-link" onClick={() => host.previewFile?.(path)}>
         {children}
       </button>
     ) : (
@@ -70,12 +75,21 @@ const components: Components = {
     );
   },
 };
-const plugins = [remarkGfm];
-
 export function PublishedMarkdown(source: Source) {
   return (
     <SourceContext.Provider value={source}>
-      <Markdown remarkPlugins={plugins} components={components}>
+      <Markdown
+        remarkPlugins={[
+          remarkGfm,
+          [
+            remarkAttachmentLinks,
+            {
+              paths: source.content.files.map((file) => file.path),
+            },
+          ],
+        ]}
+        components={components}
+      >
         {source.content.body}
       </Markdown>
     </SourceContext.Provider>

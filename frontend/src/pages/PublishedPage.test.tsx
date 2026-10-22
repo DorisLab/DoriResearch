@@ -4,6 +4,40 @@ import type { PublicationContent } from '../publicationContracts';
 import { PublishedPage } from './PublishedPage';
 
 afterEach(cleanup);
+test('related navigation uses full names and current identities; collapsed items expand', async () => {
+  const host = { protocolVersion: 1 as const, open: vi.fn(), reference: vi.fn() };
+  const related = Array.from({ length: 5 }, (_, i) => ({
+    reference: { kind: 'strategy' as const, id: `strategy-${i}`, version: '2' },
+    title: `上证50ETF固定底仓与网格策略完整名称 ${i}`,
+  }));
+  render(<PublishedPage content={{ ...content, related }} host={host} />);
+  fireEvent.click(screen.getByRole('button', { name: `策略：${related[0].title}` }));
+  expect(host.open).toHaveBeenCalledWith({ ...related[0].reference, title: related[0].title });
+  expect(screen.queryByText(/· v/)).not.toBeInTheDocument();
+  expect(screen.queryByText(related[4].title)).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: '展开其余 2 项' }));
+  expect(screen.getByText(related[4].title)).toBeVisible();
+});
+
+test('encoded attachment links and exact inline filenames open only existing files', () => {
+  const previewFile = vi.fn();
+  const host = { protocolVersion: 1 as const, open: vi.fn(), reference: vi.fn(), previewFile };
+  const path = '策略/[底仓] 网格#1%.py';
+  render(
+    <PublishedPage
+      content={{
+        ...content,
+        files: [{ ...content.files[0], path }],
+        body: `[代码](<${encodeURIComponent(path)}>)\n\n下载本页附件 \`${path}\`。\n\n\`missing.py\`\n\n\`\`\`\n${path}\n\`\`\``,
+      }}
+      host={host}
+    />,
+  );
+  fireEvent.click(screen.getByRole('button', { name: '代码' }));
+  fireEvent.click(screen.getByRole('button', { name: path }));
+  expect(previewFile.mock.calls).toEqual([[path], [path]]);
+  expect(screen.queryByRole('button', { name: 'missing.py' })).not.toBeInTheDocument();
+});
 test('files are collapsed and preview the selected path without inserting a duplicate cover', async () => {
   vi.stubGlobal(
     'ResizeObserver',

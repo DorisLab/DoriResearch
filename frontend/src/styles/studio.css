@@ -365,3 +365,15 @@
     flex-wrap: wrap;
   }
 }
+.entry-relations {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  margin-top: 8px;
+}
+.entry-relations .text-link {
+  white-space: normal;
+  text-align: left;
+  overflow-wrap: anywhere;
+}

@@ -24,7 +24,7 @@ def migrate(root: Path) -> None:
     root.mkdir(parents=True, exist_ok=True)
     cfg = Config()
     cfg.set_main_option("script_location", str(Path(__file__).parent / "migrations"))
-    engine = create_engine(URL.create("sqlite", database=str(root / "research.sqlite3")))
+    engine = create_engine(URL.create("sqlite", database=str(root / "library.sqlite")))
     try:
         with engine.begin() as connection:
             cfg.attributes["connection"] = connection
@@ -36,7 +36,7 @@ def migrate(root: Path) -> None:
 @contextmanager
 def connect(root: Path) -> Iterator[sqlite3.Connection]:
     # mode=rw prevents an obsolete/misconfigured workspace from creating a new empty database.
-    db = sqlite3.connect((root / "research.sqlite3").as_uri() + "?mode=rw", uri=True)
+    db = sqlite3.connect((root / "library.sqlite").as_uri() + "?mode=rw", uri=True)
     db.row_factory = sqlite3.Row
     db.execute("PRAGMA foreign_keys=ON")
     db.execute("PRAGMA busy_timeout=5000")

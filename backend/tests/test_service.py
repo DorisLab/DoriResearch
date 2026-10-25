@@ -19,11 +19,22 @@ from dorislab_research.library_queries import listing
 def test_real_service_parallel_parquet_reads_authentication_and_parent_lifetime(
     tmp_path: Path,
 ) -> None:
-    migrate(tmp_path)
-    seed(Library(tmp_path))
-    reference = listing(Library(tmp_path), kind="study")[0]["reference"]
+    data = tmp_path / "library"
+    cache = tmp_path / "query-cache"
+    migrate(data)
+    seed(Library(data))
+    reference = listing(Library(data), kind="study")[0]["reference"]
     child = subprocess.Popen(
-        [sys.executable, "-m", "dorislab_research.service", "serve", "--data", str(tmp_path)],
+        [
+            sys.executable,
+            "-m",
+            "dorislab_research.service",
+            "serve",
+            "--data",
+            str(data),
+            "--cache",
+            str(cache),
+        ],
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -58,9 +69,11 @@ def test_real_service_parallel_parquet_reads_authentication_and_parent_lifetime(
             curves, table = list(pool.map(rpc, ["rows", "table"]))
         assert len(curves["result"]) == table["result"]["total"] == 258
         assert len(table["result"]["rows"]) == 20
+        assert list(cache.glob("table-*/rows.sqlite3"))
         assert rpc("health")["result"]["schema"] == "0002"
         child.stdin.close()
         assert child.wait(timeout=5) == 0
+        assert not list(cache.glob("table-*"))
     finally:
         if child.poll() is None:
             child.kill()

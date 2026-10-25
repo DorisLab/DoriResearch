@@ -1,15 +1,15 @@
 import base64
 import json
 import mimetypes
-import sqlite3
 from collections.abc import Callable
-from contextlib import closing
+from pathlib import Path
 from typing import Any
 
 from . import datasets, file_reads, library_queries, search_sync
 from .database import connect
 from .jobs import cancel, job, start
 from .library import Library
+from .storage import backup
 
 
 def health(library: Library) -> dict[str, str]:
@@ -23,16 +23,6 @@ def freeze(library: Library, args: dict[str, Any]) -> None:
         if db.execute("SELECT 1 FROM jobs WHERE status IN ('running','queued')").fetchone():
             raise ValueError("仍有策略正在回测，请完成后启用工程")
         (library.root / "maintenance.json").write_text(json.dumps(args), encoding="utf-8")
-
-
-def backup(library: Library) -> None:
-    if not (library.root / "maintenance.json").is_file():
-        raise ValueError("升级备份需要先暂停写入")
-    with (
-        connect(library.root) as source,
-        closing(sqlite3.connect(library.root / "activation.sqlite3")) as destination,
-    ):
-        source.backup(destination)
 
 
 def file_content(library: Library, args: dict[str, Any]) -> dict[str, str]:
@@ -55,7 +45,7 @@ def dispatch(library: Library, operation: str, args: dict[str, Any]) -> Any:
         "file_chunk": lambda: file_reads.chunk(library, args),
         "table_preview": lambda: file_reads.table_preview(library, args),
         "freeze": lambda: freeze(library, args),
-        "backup": lambda: backup(library),
+        "backup": lambda: backup(library.root, Path(args["path"])),
         "list": lambda: library_queries.listing(
             library, args.get("query", ""), args.get("kind", "")
         ),

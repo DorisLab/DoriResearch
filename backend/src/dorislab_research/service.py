@@ -71,9 +71,16 @@ def serve(root: Path, token: str, port: int = 0) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("command", choices=["migrate", "serve", "seed", "check", "verify"])
+    parser.add_argument(
+        "command", choices=["migrate", "serve", "seed", "check", "verify", "restore"]
+    )
     parser.add_argument("--data", type=Path, required=True)
+    parser.add_argument("--cache", type=Path)
+    parser.add_argument("--backup", type=Path)
     args = parser.parse_args()
+    if args.cache:
+        args.cache.mkdir(parents=True, exist_ok=True)
+        os.environ["DORIRESEARCH_CACHE"] = str(args.cache.resolve())
     if args.command == "migrate":
         migrate(args.data)
     elif args.command == "seed":
@@ -86,6 +93,12 @@ def main() -> None:
         print(json.dumps(verify(args.data)))
     elif args.command == "check":
         print(json.dumps(dispatch(Library(args.data), "health", {})))
+    elif args.command == "restore":
+        from .storage import restore
+
+        if args.backup is None:
+            parser.error("restore requires --backup")
+        restore(args.data, args.backup)
     else:
         serve(args.data, os.environ["DORIRESEARCH_TOKEN"])
 

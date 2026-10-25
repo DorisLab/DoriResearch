@@ -12,9 +12,15 @@ from .library import Library
 from .storage import backup
 
 
-def health(library: Library) -> dict[str, str]:
+def health(library: Library) -> dict[str, str | bool]:
     with connect(library.root) as db:
-        return {"schema": db.execute("SELECT version_num FROM alembic_version").fetchone()[0]}
+        return {
+            "schema": db.execute("SELECT version_num FROM alembic_version").fetchone()[0],
+            "active_jobs": db.execute(
+                "SELECT 1 FROM jobs WHERE status IN ('running','queued') LIMIT 1"
+            ).fetchone()
+            is not None,
+        }
 
 
 def freeze(library: Library, args: dict[str, Any]) -> None:

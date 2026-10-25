@@ -71,6 +71,7 @@ def test_real_service_parallel_parquet_reads_authentication_and_parent_lifetime(
         assert len(table["result"]["rows"]) == 20
         assert list(cache.glob("table-*/rows.sqlite3"))
         assert rpc("health")["result"]["schema"] == "0002"
+        assert rpc("health")["result"]["active_jobs"] is False
         child.stdin.close()
         assert child.wait(timeout=5) == 0
         assert not list(cache.glob("table-*"))

@@ -15,7 +15,7 @@ it('assigns semantic colors independently of order or display names', () => {
     { data: [1, 2], itemStyle: { color: '#477bb5' } },
     { data: [2, null], connectNulls: false, itemStyle: { color: '#c83932' } },
   ]);
-  expect(seriesColor('drawdown')).toBe('#df8a87');
+  expect(seriesColor('drawdown')).toBe('#2f8a62');
   expect(() =>
     chartOption({
       kind: 'scatter',

@@ -21,13 +21,45 @@ function valid(value: unknown): value is ChartView {
     v.hidden.every((n) => typeof n === 'string')
   );
 }
+function restoreChartView(chart: EChartsType, saved: ChartView) {
+  const option = chart.getOption();
+  if ((option.dataZoom as unknown[] | undefined)?.length) {
+    chart.dispatchAction({
+      type: 'dataZoom',
+      dataZoomIndex: 0,
+      start: saved.zoom[0],
+      end: saved.zoom[1],
+    });
+  }
+  const legends = (option.legend as { selected?: Record<string, boolean> }[] | undefined) ?? [];
+  for (const name of legends.flatMap((legend) => Object.keys(legend.selected ?? {}))) {
+    if (!saved.hidden.includes(name)) chart.dispatchAction({ type: 'legendSelect', name });
+  }
+  for (const name of saved.hidden) chart.dispatchAction({ type: 'legendUnSelect', name });
+}
 export function connectChartView(
   chart: EChartsType,
   view: RefObject<ChartView>,
   key: string,
   length: number,
 ) {
-  const saved = readView(`chart:${key}`, view.current, valid);
+  const option = chart.getOption();
+  const zoom = (option.dataZoom as { start?: number; end?: number }[] | undefined)?.[0];
+  const legends = (option.legend as { selected?: Record<string, boolean> }[] | undefined) ?? [];
+  const initial: ChartView = {
+    index: 0,
+    zoom: [zoom?.start ?? 0, zoom?.end ?? 100],
+    hidden: [
+      ...new Set(
+        legends.flatMap((legend) =>
+          Object.entries(legend.selected ?? {})
+            .filter(([, selected]) => !selected)
+            .map(([name]) => name),
+        ),
+      ),
+    ],
+  };
+  const saved = readView(`chart:${key}`, initial, valid);
   view.current = { ...saved, index: Math.min(saved.index, length - 1) };
   const persist = () => writeView(`chart:${key}`, { ...view.current });
   chart.on('updateAxisPointer', (raw: unknown) => {
@@ -49,7 +81,6 @@ export function connectChartView(
     persist();
   });
   // Restore through public chart actions so the displayed chart and reference snapshot agree.
-  chart.dispatchAction({ type: 'dataZoom', start: saved.zoom[0], end: saved.zoom[1] });
-  for (const name of saved.hidden) chart.dispatchAction({ type: 'legendUnSelect', name });
+  if (saved !== initial) restoreChartView(chart, saved);
   persist();
 }

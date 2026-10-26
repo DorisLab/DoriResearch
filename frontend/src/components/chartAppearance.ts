@@ -23,14 +23,25 @@ export function chartAppearance(compact: boolean): EChartsCoreOption {
       top: compact ? 18 : fontSize * 3.2,
       bottom: compact ? 8 : fontSize * 3.5,
     },
-    legend: { textStyle: { ...typography, color: text }, inactiveColor: muted },
+    legend: {
+      textStyle: { ...typography, color: text },
+      inactiveColor: muted,
+      pageTextStyle: { ...typography, color: muted },
+      pageIconColor: text,
+      pageIconInactiveColor: line,
+    },
     tooltip: {
       backgroundColor: read('--canvas', '#fff'),
       borderColor: line,
       textStyle: { ...typography, color: text },
     },
-    xAxis: { axisLabel: { ...typography, color: muted }, axisLine: { lineStyle: { color: line } } },
+    xAxis: {
+      nameTextStyle: { ...typography, color: muted },
+      axisLabel: { ...typography, color: muted },
+      axisLine: { lineStyle: { color: line } },
+    },
     yAxis: {
+      nameTextStyle: { ...typography, color: muted },
       axisLabel: { ...typography, color: muted },
       splitLine: { lineStyle: { color: line } },
     },

@@ -10,6 +10,7 @@ from cycler import cycler
 from matplotlib import rc_context
 from matplotlib.figure import Figure
 from matplotlib.font_manager import fontManager
+from matplotlib.ticker import MaxNLocator
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 THEME: dict[str, Any] = json.loads(Path(__file__).with_name("chart_theme.json").read_text())
@@ -81,7 +82,15 @@ def figure(request: ChartRequest) -> Figure:
                 values = [float("nan") if v is None else v for v in series.values]
                 series_color = color(series.role, index)
                 if request.kind == "line":
-                    ax.plot(request.x, values, label=series.name, color=series_color)
+                    ax.plot(
+                        request.x,
+                        values,
+                        label=series.name,
+                        color=series_color,
+                        linestyle="--" if series.role == "benchmark" else "-",
+                    )
+                    if series.role == "drawdown":
+                        ax.fill_between(request.x, values, 0, color=series_color, alpha=0.15)
                 elif request.kind == "scatter":
                     ax.scatter(request.x, values, label=series.name, color=series_color)
                 else:
@@ -91,6 +100,19 @@ def figure(request: ChartRequest) -> Figure:
                     ax.set_xticks(range(len(request.x)), labels=[str(x) for x in request.x])
             ax.legend(frameon=False)
             ax.grid(axis="y", alpha=0.18, color=THEME["neutral"])
+        # 分类轴保留原有顺序与间隔，只减少标签，避免日期字符串逐点挤在一起。
+        if request.kind in {"bar", "heatmap"} or (
+            request.kind == "line" and isinstance(request.x[0], str)
+        ):
+            count = min(8, len(request.x))
+            ticks = [round(i * (len(request.x) - 1) / max(1, count - 1)) for i in range(count)]
+            ax.set_xticks(ticks, labels=[str(request.x[i]) for i in ticks])
+        if request.kind == "bar" and all(
+            value is None or float(value).is_integer()
+            for series in request.series
+            for value in series.values
+        ):
+            ax.yaxis.set_major_locator(MaxNLocator(integer=True))
         ax.set(title=request.title, xlabel=request.x_label, ylabel=request.y_label)
         return fig
 

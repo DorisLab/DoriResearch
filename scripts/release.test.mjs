@@ -23,7 +23,7 @@ test('release source equals Git bytes even when a clean checkout uses CRLF', asy
     ...args], { encoding: 'utf8' }).trim();
   await writeFile(join(source, '.gitattributes'), '* text=auto eol=lf\n');
   await writeFile(join(source, '.gitignore'), 'frontend/dist/\n');
-  await writeFile(join(source, 'project.json'), '{"version":"0.1.1"}\n');
+  await writeFile(join(source, 'project.json'), '{"version":"0.3.0","host_protocol":2}\n');
   await writeFile(join(source, 'example.py'), 'print(1)\nprint(2)\n');
   await writeFile(join(source, 'frontend/dist/desktop/research.js'), '// fixture\n');
   git('init', '--quiet'); git('add', '.'); git('commit', '--quiet', '-m', 'fixture');
@@ -35,6 +35,7 @@ test('release source equals Git bytes even when a clean checkout uses CRLF', asy
   assert.equal(await readFile(join(output, 'source/example.py'), 'utf8'), 'print(1)\nprint(2)\n');
   const manifest = JSON.parse(await readFile(join(output, 'release.json'), 'utf8'));
   assert.equal(manifest.commit, git('rev-parse', 'HEAD'));
+  assert.equal(manifest.host_protocol, 2);
   assert.equal(manifest.id, identity(manifest.files));
   assert.ok((await readFile(join(output, 'git/project.bundle'))).length > 0);
 });

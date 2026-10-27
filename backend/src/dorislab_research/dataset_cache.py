@@ -1,6 +1,7 @@
 """Disposable, disk-backed query cache; source files remain authoritative."""
 
 import json
+import os
 import sqlite3
 import tempfile
 import threading
@@ -47,7 +48,9 @@ def dataset(path: Path) -> Iterator[tuple[sqlite3.Connection, list[str]]]:
             _cache.pop(path)[1].cleanup()
             previous = None
         if not previous:
-            directory = tempfile.TemporaryDirectory(prefix="doriresearch-table-")
+            directory = tempfile.TemporaryDirectory(
+                prefix="table-", dir=os.environ.get("DORIRESEARCH_CACHE")
+            )
             db = sqlite3.connect(Path(directory.name) / "rows.sqlite3")
             try:
                 columns = build(path, db)

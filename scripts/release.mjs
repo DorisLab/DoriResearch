@@ -59,7 +59,7 @@ export async function release(root, output) {
   files['git/project.bundle'] = createHash('sha256').update(await readFile(bundle)).digest('hex');
   const sorted = Object.fromEntries(Object.entries(files).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0));
   await writeFile(resolve(output, 'release.json'), JSON.stringify({
-    schema: 2, id: identity(sorted), version: project.version, host_protocol: 1,
+    schema: 2, id: identity(sorted), version: project.version, host_protocol: project.host_protocol,
     repository: 'https://github.com/DorisLab/DoriResearch.git', commit, files: sorted,
   }, null, 2));
   console.log(`DoriResearch ${project.version}: ${commit}, ${Object.keys(files).length} files`);

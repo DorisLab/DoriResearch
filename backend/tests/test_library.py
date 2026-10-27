@@ -14,8 +14,8 @@ from dorislab_research.service_api import dispatch
 
 @pytest.fixture
 def library(tmp_path: Path) -> Library:
-    migrate(tmp_path)
-    return Library(tmp_path)
+    migrate(tmp_path / "library")
+    return Library(tmp_path / "library")
 
 
 def test_save_conflict_is_detected_before_creating_files(library: Library) -> None:
@@ -72,12 +72,26 @@ def test_local_component_files_and_schema_upgrade_write_barrier(
     )
     assert table["rows"] == [{"值": 1}, {"值": 2}]
     with pytest.raises(ValueError):
-        library.file(study, "../../research.sqlite3")
+        library.file(study, "../../library.sqlite")
     dispatch(library, "freeze", {})
     with pytest.raises(ValueError, match="升级"):
         library.save(kind="study", title="等待", body="")
-    dispatch(library, "backup", {})
-    assert (library.root / "activation.sqlite3").is_file()
+    backup = tmp_path / "backups" / "activation.sqlite"
+    dispatch(library, "backup", {"path": str(backup)})
+    assert backup.is_file()
+    assert (library.root / "library.sqlite").is_file()
+    assert not (library.root / "research.sqlite3").exists()
+    from dorislab_research.storage import restore
+
+    with pytest.raises(ValueError, match="独立"):
+        dispatch(library, "backup", {"path": str(library.root / "unsafe.sqlite")})
+    (library.root / "maintenance.json").unlink()
+    extra = library.save(kind="study", title="备份之后", body="尚未确认的新增记录")
+    dispatch(library, "freeze", {})
+    restore(library.root, backup)
+    assert library.content(study)["item"]["title"] == "表格"
+    with pytest.raises(ValueError):
+        library.content(extra)
 
 
 def test_examples_are_computed_and_manual_result_is_independent(library: Library) -> None:

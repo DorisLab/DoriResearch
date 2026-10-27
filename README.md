@@ -36,7 +36,7 @@ print(library.links(reference))
 
 `references` 仍精确保留研究依据的修订号；`content["related"]` 是独立的双向导航，按内容身份去重、排除自身，名称和跳转使用当前修订。其他内容引用本页后会自动出现，无需改写本页的旧依据。归档或删除内容不新增反向入口，已引用且删除的内容保留名称与不可用状态。
 
-正文保存为 report.md，files 只列要保留的普通文件，不需要清单、哈希或证明材料。每次修改保留独立内容修订，历史引用仍可读取。SQLite 在持久目录的 research.sqlite3，文件在 files/；它们不进入源码 Git。缓存和中间行情不必保存进资料库。归档、删除不级联影响关联内容。
+正文保存为 report.md，files 只列要保留的普通文件，不需要清单、哈希或证明材料。每次修改保留独立内容修订，历史引用仍可读取。SQLite 在客户端显式提供的持久目录的 library.sqlite，文件在 files/；它们不进入源码 Git。0.3.0 使用 host_protocol 2，不读取或迁移旧版研究数据库。缓存和中间行情不必保存进资料库。归档、删除不级联影响关联内容。
 
 ## Markdown 阅读组件
 
@@ -76,6 +76,8 @@ print(library.links(reference))
 在 backend 用 uv 同步锁定依赖，运行 `python ../scripts/dev.py` 启动真实 API 和 Vite。预览使用独立的 target/preview 测试数据，初次生成一个模拟研究与一个模拟策略，数值均实际计算。示例只初始化一次，升级不覆盖用户修改或复活删除内容。
 
 数据库由 backend/src/dorislab_research/migrations 中的 Alembic 修订维护。Agent 编写迁移及相关测试，客户端启用时执行正式升级；普通保存不得自动迁移。测试使用隔离数据库和文件目录。
+
+客户端以 `service serve --data <library> --cache <query-cache>` 传入独立内容目录和一次性查询缓存。工程启用期间先冻结写入，`backup` 请求必须包含客户端登记的外部绝对 `path`；失败恢复使用 `service restore --data <library> --backup <backup-file>`。备份和恢复都通过 SQLite API 完成，客户端不复制打开中的数据库；备份保留及缓存回收由客户端负责。
 
 候选工程的 `service verify --data <检查根目录>` 在新分配的隔离目录迁移测试库，启动实际 HTTP 服务并读取健康状态、搜索列表及正文；失败阻止启用，结束后回收子进程和测试数据。此检查不认证研究结论，不访问正式库。
 

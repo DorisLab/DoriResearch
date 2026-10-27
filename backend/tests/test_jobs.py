@@ -11,6 +11,7 @@ from dorislab_research.examples import seed
 from dorislab_research.jobs import cancel, job, start
 from dorislab_research.library import Library
 from dorislab_research.library_queries import listing
+from dorislab_research.service_api import health
 
 
 def test_cancel_wins_before_save_and_duplicate_request_starts_once(
@@ -41,12 +42,14 @@ def test_cancel_wins_before_save_and_duplicate_request_starts_once(
     args: dict[str, Any] = {"request_id": "same-request"}
     first = start(library, strategy, args)
     assert entered.wait(5)
+    assert health(library)["active_jobs"] is True
     assert start(library, strategy, args)["id"] == first["id"]
     with pytest.raises(ValueError, match="其他回测"):
         start(library, strategy, {**args, "parameters": {"position": 0.8}})
     assert cancel(library, first["id"])["status"] == "cancelled"
     release.set()
     assert finished.wait(5)
+    assert health(library)["active_jobs"] is False
     assert job(library, first["id"])["status"] == "cancelled"
     assert calls == [first["id"]]
     assert listing(library, kind="run") == []

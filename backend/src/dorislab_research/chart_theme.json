@@ -2,8 +2,35 @@
   "strategy": "#c83932",
   "benchmark": "#477bb5",
   "excess": "#b98b2f",
-  "drawdown": "#df8a87",
+  "drawdown": "#2f8a62",
   "exposure": "#538795",
   "neutral": "#7a828e",
-  "palette": ["#c83932", "#477bb5", "#b98b2f", "#538795", "#9467bd", "#df8a87"]
+  "palette": [
+    "#c83932",
+    "#477bb5",
+    "#b98b2f",
+    "#2f8a62",
+    "#9467bd",
+    "#538795",
+    "#b56835",
+    "#7a828e"
+  ],
+  "dark": {
+    "strategy": "#ef7770",
+    "benchmark": "#80b1e0",
+    "excess": "#d8b55d",
+    "drawdown": "#75c59a",
+    "exposure": "#7cb2be",
+    "neutral": "#a1aab7",
+    "palette": [
+      "#ef7770",
+      "#80b1e0",
+      "#d8b55d",
+      "#75c59a",
+      "#bd9cde",
+      "#7cb2be",
+      "#e3a278",
+      "#a1aab7"
+    ]
+  }
 }

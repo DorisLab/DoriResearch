@@ -1,10 +1,11 @@
-import type { EChartsCoreOption, EChartsType } from 'echarts/core';
+import type { EChartsOption, EChartsType } from 'echarts';
 import theme from '../../backend/src/dorislab_research/chart_theme.json';
 
 export type SeriesRole = 'strategy' | 'benchmark' | 'excess' | 'drawdown' | 'exposure';
 export const chartTheme = theme;
-export function seriesColor(role?: SeriesRole, index = 0) {
-  return role ? theme[role] : theme.palette[index % theme.palette.length];
+export function seriesColor(role?: SeriesRole, index = 0, dark = false) {
+  const palette = dark ? theme.dark : theme;
+  return role ? palette[role] : palette.palette[index % palette.palette.length];
 }
 
 export interface ChartSpec {
@@ -16,7 +17,14 @@ export interface ChartSpec {
   series: { name: string; values: (number | null)[]; role?: SeriesRole }[];
 }
 
-export function chartOption(spec: ChartSpec): EChartsCoreOption {
+function barInterval(spec: ChartSpec) {
+  return spec.kind === 'bar' &&
+    spec.series.every((s) => s.values.every((n) => n === null || Number.isInteger(n)))
+    ? 1
+    : undefined;
+}
+
+export function chartOption(spec: ChartSpec): EChartsOption {
   if (
     !spec.x.length ||
     !spec.series.length ||
@@ -39,20 +47,46 @@ export function chartOption(spec: ChartSpec): EChartsCoreOption {
     },
     legend: { top: 44 },
     tooltip: { trigger: spec.kind === 'scatter' ? 'item' : 'axis' },
-    grid: { containLabel: true, top: 88, left: 45, right: 25, bottom: 45 },
+    grid: {
+      outerBoundsMode: 'same',
+      outerBoundsContain: 'all',
+      top: 88,
+      left: 8,
+      right: 8,
+      bottom: 16,
+    },
     xAxis: {
       type: spec.kind === 'scatter' ? 'value' : 'category',
       data: spec.kind === 'scatter' ? undefined : spec.x,
       name: spec.x_label,
+      nameLocation: 'middle',
+      nameGap: 15,
+      axisLabel: {
+        hideOverlap: true,
+        showMinLabel: true,
+        showMaxLabel: true,
+        alignMinLabel: 'left',
+        alignMaxLabel: 'right',
+      },
     },
-    yAxis: { type: 'value', name: spec.y_label, scale: true },
+    yAxis: {
+      type: 'value',
+      name: spec.y_label,
+      nameTextStyle: { align: 'left' },
+      scale: spec.kind === 'line',
+      minInterval: barInterval(spec),
+    },
     series: spec.series.map((s, index) => ({
       name: s.name,
       type: spec.kind,
       connectNulls: false,
       data: spec.kind === 'scatter' ? s.values.map((value, i) => [spec.x[i], value]) : s.values,
       itemStyle: { color: seriesColor(s.role, index) },
-      lineStyle: { color: seriesColor(s.role, index) },
+      lineStyle: {
+        color: seriesColor(s.role, index),
+        type: s.role === 'benchmark' ? 'dashed' : 'solid',
+      },
+      ...(s.role === 'drawdown' && spec.kind === 'line' ? { areaStyle: { opacity: 0.15 } } : {}),
     })),
   };
 }

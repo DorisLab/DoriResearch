@@ -132,7 +132,7 @@
   padding: 1px 6px;
   border-radius: 4px;
 }
-.chart-block {
+.chart-block:not(.content-chart) {
   position: relative;
   margin: 20px 0;
   padding-top: 40px;

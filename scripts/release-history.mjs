@@ -41,7 +41,7 @@ export async function filteredBundle(root, commit, destination) {
     for (const entry of snapshot.entries) {
       if (entry.type !== 'blob' || !['100644', '100755'].includes(entry.mode)) throw new Error('Unsafe source mode');
       const key = entry.name + ':' + entry.oid;
-      if (!checked.has(key)) { checkContent(entry.name, objects.get(entry.oid)); checked.add(key); }
+      if (!checked.has(key)) { checkContent(entry.name, objects.get(entry.oid), [root]); checked.add(key); }
     }
   }
   const temporary = await mkdtemp(join(tmpdir(), 'doriresearch-distribution-'));

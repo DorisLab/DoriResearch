@@ -84,5 +84,7 @@ test('content failures redact private values, check UTF-16 and keep normal loopb
   }
   assert.throws(() => checkContent('frontend/private.js.map', Buffer.from('{}')), /private-debug-artifact/);
   assert.throws(() => checkContent('build/private.js', Buffer.from('//# sourceMappingURL=data:application/json;base64,aaa')), /private-source-map/);
-  checkContent('backend/example.py', Buffer.from('http://127.0.0.1:1234 and https://example.invalid'));
+  checkContent('backend/example.py', Buffer.from('http://127.0.0.1:1234 https://example.invalid /home/fly/notebook'));
+  assert.throws(() => checkContent('backend/example.py', Buffer.from('/home/builder/projects/private/src')), /developer-path/);
+  assert.throws(() => checkContent('backend/example.py', Buffer.from('/build/custom-root/private'), ['/build/custom-root']), /developer-path/);
 });

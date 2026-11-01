@@ -45,7 +45,7 @@ export async function release(root, output) {
     const bytes = execFileSync('git', ['-C', root, 'show', `${sourceCommit}:${name}`], {
       maxBuffer: 32 * 1024 * 1024,
     });
-    checkContent(name, bytes);
+    checkContent(name, bytes, [root]);
     await save(bytes, `source/${name}`);
   }
   const build = resolve(root, 'frontend/dist/desktop');
@@ -54,7 +54,7 @@ export async function release(root, output) {
     if (entry.isFile()) {
       const file = resolve(entry.parentPath, entry.name);
       const name = `build/${relative(build, file).replaceAll('\\', '/')}`;
-      checkContent(name, await readFile(file));
+      checkContent(name, await readFile(file), [root]);
       await copy(file, name);
     }
   }

@@ -71,7 +71,7 @@ test('distribution retains editable code and checks while excluding internal pub
 });
 
 test('content failures redact private values, check UTF-16 and keep normal loopback examples', () => {
-  const secret = '-----BEGIN ' + 'PRIVATE KEY-----\nsynthetic-sensitive-value';
+  const secret = '-----BEGIN ' + 'PRIVATE KEY-----\n' + 'A'.repeat(64) + '\nsynthetic-sensitive-value';
   for (const value of [secret, 'E:\\RustProjects\\example\\source.rs', 'https://10.42.3.4/api']) {
     for (const bytes of [Buffer.from(value), Buffer.from(value, 'utf16le'), Buffer.from(value, 'utf16le').swap16()]) {
       assert.throws(() => checkContent('backend/code.py', bytes), error => {

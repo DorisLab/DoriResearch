@@ -30,4 +30,4 @@ Python 辅助函数的分类轴保留原始顺序和等距含义，只稀疏显�
 
 `scripts/verify-charts.mjs` 在真实浏览器渲染研究正文，覆盖窄栏／宽栏、深浅主题、大字号、长标题、图例和坐标轴文字，并检查缩放与图例状态。它是开发回归入口，不是产品 Agent 工具。组件测试覆盖显式多网格、数值范围与缩放目标保留；Python 测试实际绘制连续日期并检查相邻标签重叠。
 
-在 `frontend` 安装锁定依赖后运行 `npm run test:charts`。Windows 使用本机 Edge；其他平台先执行 `npx playwright install chromium`。脚本也导出 `verifyCharts(browser)`，可复用隔离桌面 fixture 的 WebView2 连接。截图和几何结果保存在 `target/chart-verification/<时间>/`；只创建合成页面，不连接账号资料库。定向结果和实际验证边界见[本轮记录](validation/charts-2026-10-27.md)。
+在 `frontend` 安装锁定依赖后运行 `npm run test:charts`。Windows 使用本机 Edge；其他平台先执行 `npx playwright install chromium`。脚本也导出 `verifyCharts(browser)`，可复用隔离桌面 fixture 的 WebView2 连接。截图和几何结果保存在 `target/chart-verification/<时间>/`；只创建合成页面，不连接账号资料库。

@@ -1,6 +1,6 @@
 {
   "name": "dorislab-research",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "host_protocol": 2,
   "bundle_schema": 1,
   "status": "development-preview",

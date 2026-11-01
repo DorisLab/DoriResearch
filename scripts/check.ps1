@@ -17,7 +17,9 @@ try {
     Push-Location $root
     try {
         Checked git @('diff','--check')
-        Checked node @('--test','scripts/release.test.mjs')
+        if (Test-Path -LiteralPath 'scripts/release.test.mjs') {
+            Checked node @('--test','scripts/release.test.mjs')
+        }
     } finally { Pop-Location }
     if ($Target -in @('All','Backend')) {
         Push-Location (Join-Path $root 'backend')

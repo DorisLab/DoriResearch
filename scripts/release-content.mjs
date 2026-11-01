@@ -20,7 +20,7 @@ export function checkContent(name, bytes) {
   }
   for (const { text, offset } of views) {
     const rules = [
-      ['private-key', /-----BEGIN (?:[A-Z]+ )*PRIVATE KEY-----|untrusted comment:[^\r\n]{0,80}(?:encrypted )?secret key/i],
+      ['private-key', /-----BEGIN (?:[A-Z]+ )*PRIVATE KEY-----\r?\n(?:[^\r\n]{0,160}\r?\n){0,3}[A-Za-z0-9+/]{48,}={0,2}(?:\r?\n|-----END)|untrusted comment:[^\r\n]{0,80}(?:encrypted )?secret key\r?\n[A-Za-z0-9+/]{48,}|AGE-SECRET-KEY-[0-9A-Z]{20,}/i],
       ['developer-path', /[a-z]:[\\/](?:RustProjects|Projects|Workspaces?|repos?)[\\/]|[a-z]:[\\/]Users[\\/][^\\/\s<>"']{1,80}[\\/]|\/(?:home|Users)\/[^/\s<>"']{1,80}\//i],
       ['internal-address', /\b(?:10(?:\.\d{1,3}){3}|192\.168(?:\.\d{1,3}){2}|172\.(?:1[6-9]|2\d|3[01])(?:\.\d{1,3}){2}|169\.254(?:\.\d{1,3}){2})\b/],
       ['internal-address', /\b(?:fc|fd)[0-9a-f]{2}(?::[0-9a-f]{0,4}){2,7}\b/i],

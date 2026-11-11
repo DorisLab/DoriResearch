@@ -8,6 +8,14 @@ Dorislab 的 `data_catalog` 查询已安装行情的范围、字段和 Parquet �
 
 普通问答直接回答。研究或策略可保存到资料库；研究工程功能、页面和可调用模块通过 Git 提交和客户端 `activate_research` 启用。平台策略代码可以作为内容附件交付。保存内容不会触发构建、自动合并或模型调用。
 
+### Python 与依赖
+
+0.4.0 的固定研究环境包含 pandas、NumPy、SciPy、PyArrow、DoriBT 与 Matplotlib。行情表格处理、统计检验和 Library 操作使用 `prepare_research` 返回的 `python`，普通终端中的基础 Python 只承诺标准库。工具的 `environment` 回执记录所用依赖版本和声明／锁文件身份。
+
+临时尝试其他库可以使用独立环境。需要长期复跑的研究脚本随内容保存 `pyproject.toml`、`uv.lock`、运行说明和必要代码；在新的环境中按锁文件同步并复跑验证后交付。运行说明写明 Python 版本、入口、参数及行情文件如何通过 `data_catalog` 重新定位，不把机器上的绝对解释器路径当作可移植入口。环境回执用于记录本次运行，不能替代依赖锁。
+
+研究工程自身新增依赖时同步修改 `backend/pyproject.toml` 和 `backend/uv.lock`，再次调用 `prepare_research` 获取新环境；完成相关验证后随工程源码提交和启用。临时命令的 `uv run --with` 依赖只在该命令环境有效，保存脚本时要将实际依赖写入对应声明与锁文件。
+
 ## 保存与读取
 
 使用返回的 Python，将回执的 `data` 路径传给 Library，或为该执行进程设置 `DORIRESEARCH_DATA`；`prepare_research` 不修改后续终端的环境变量。下面的 `data_directory` 使用实际回执路径，行情输入使用 `data_catalog` 返回的路径：
